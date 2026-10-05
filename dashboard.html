@@ -626,8 +626,15 @@ SET=LS.get("elb.set",{});if(SET.goal)S.goal=SET.goal;
   }catch(e){}
 })();
 
+function freshStart(ts){
+  for(const k in TIME.days)delete TIME.days[k];for(const k in VIDT)delete VIDT[k];for(const k in OTHERS)delete OTHERS[k];for(const k in OTHV)delete OTHV[k];
+  Object.assign(S,{tenses:[],verbs:[],words:[],best:{},act:{},vseen:{},last:0,level:"a1",goal:20});LASTSEEN=0;
+  LS.set("elb.days",TIME.days);LS.set("elb.vid",VIDT);LS.set("elb.state",S);LS.set("elb.ai",[]);LS.set("elb.resetseen",ts);
+}
 async function fbLoad(first){
   try{
+    const sj0=await fbGet("settings/main");
+    if(sj0&&sj0.fields){try{const x=JSON.parse(sj0.fields.json.stringValue);if(x.reset&&x.reset>LS.get("elb.resetseen",0)){freshStart(x.reset);PIN_OK=false}}catch(e){}}
     const j=await fbGet("reports",true);
     ((j&&j.documents)||[]).forEach(d=>{const id=d.name.split("/").pop();let x;try{x=JSON.parse(d.fields.json.stringValue)}catch(e){return}
       if(id===DEV){const days=x.days||{};for(const k in days)TIME.days[k]=Math.max(TIME.days[k]||0,days[k]);const v=x.vid||{};for(const k in v)VIDT[k]=Math.max(VIDT[k]||0,v[k]);mergeProg(x);return}
