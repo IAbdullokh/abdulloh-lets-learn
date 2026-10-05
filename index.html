@@ -265,6 +265,12 @@ tr:last-child td{border-bottom:0}
 @media (max-width:420px){.tabs button{font-size:.6rem}.tabs svg{width:18px;height:18px}}
 .soon{align-items:flex-start;text-align:left;padding-block:28px}
 .soon-badge{background:var(--hl);color:var(--hl-ink);font-weight:700;font-size:.85rem;padding:5px 12px;border-radius:99px}
+.lvstrip{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between}
+.lvstrip b{font-size:1.05rem}
+.lvstrip>div:first-child{display:flex;flex-direction:column}
+.lvfacts{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:.95rem}
+.tdet summary{cursor:pointer;font-weight:600;font-size:1.05rem}
+.tdet[open] summary{margin-bottom:12px}
 .maptoggle{display:flex;justify-content:center;padding-top:8px}
 .vcats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
 .vcat{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 10px;border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink)}
@@ -363,7 +369,7 @@ const LV={
  a1:{name:"Beginner",cefr:"A1",t:["tobe","art1","plural","pron","ps","poss","demo","pc","thereis","pplace","past","ptime","qwords","goingto"],verbs:"100",verbsNote:"50 irregular + 50 regular",words:"500–700",time:"About 2–3 months with 20 minutes a day",
    desc:"Start here. Learn to talk about yourself, your day and what you did last weekend.",
    also:["Numbers, colours, days and months","Family, food, school and home words","Greetings and introducing yourself"]},
- a2:{name:"Pre-Intermediate",cefr:"A2",t:["pastc","art2","compar","pp","quant","fs","adverb","modals"],review:"a1",verbs:"250",verbsNote:"100 irregular verbs",words:"1,000–1,500",time:"About 3–4 months with 20–30 minutes a day",
+ a2:{name:"Pre-Intermediate",cefr:"A2",t:["pastc","art2","compar","pp","quant","fs","pmove","adverb","modals"],review:"a1",verbs:"250",verbsNote:"100 irregular verbs",words:"1,000–1,500",time:"About 3–4 months with 20–30 minutes a day",
    desc:"Tell stories about the past, talk about your experiences and make plans for the future.",
    also:["Travel, shopping and health words","Telling a short story about your weekend","Writing short messages and emails"]},
  b1:{name:"Intermediate",cefr:"B1",t:["ppc","cond12","pastp","passive","usedto","fc","gerinf","relcl"],review:"a2",verbs:"400",verbsNote:"All common irregular verbs",words:"2,000–2,500",time:"About 4–6 months with 30 minutes a day",
@@ -827,8 +833,8 @@ function todayCard(){
   const sec=dayTotal(dk()),goal=S.goal*60,p=Math.min(1,sec/goal),R=40,C=2*Math.PI*R;
   const st=streak();
   return '<section class="card today"><svg class="ring" viewBox="0 0 96 96" role="img" aria-label="Daily goal progress"><circle cx="48" cy="48" r="'+R+'" fill="none" stroke="var(--surface2)" stroke-width="10"/><circle cx="48" cy="48" r="'+R+'" fill="none" stroke="var(--present)" stroke-width="10" stroke-linecap="round" stroke-dasharray="'+(C*p)+' '+C+'" transform="rotate(-90 48 48)"/><text x="48" y="47" text-anchor="middle" font-size="20" font-weight="700">'+Math.floor(sec/60)+'</text><text x="48" y="63" text-anchor="middle" font-size="10" style="fill:var(--muted)">'+L("of {n} min",{n:S.goal})+'</text></svg>'+
-  '<div class="stack"><div><h2>'+(p>=1?L("Goal done today. Great work!"):L("Today's goal: {n} minutes",{n:S.goal}))+'</h2><p class="muted small">'+L("The timer counts while this page is open and you are using it. It pauses after 5 minutes with no taps.")+'</p></div>'+
-  '<div class="stat-row"><div class="stat"><b class="num">'+L("{n} days",{n:st})+'</b><span>'+L("streak (5+ min a day)")+'</span></div><div class="stat"><b class="num">'+fmt(weekSec())+'</b><span>'+L("this week")+'</span></div><div class="stat"><b class="num">'+fmt(monthSec())+'</b><span>'+L("this month")+'</span></div></div></div></section>';
+  '<div class="stack"><div><h2>'+(p>=1?L("Goal done today. Great work!"):L("Today's goal: {n} minutes",{n:S.goal}))+'</h2></div>'+
+  '<div class="stat-row"><div class="stat"><b class="num">'+L("{n} days",{n:st})+'</b><span>'+L("streak (5+ min a day)")+'</span></div><div class="stat"><b class="num">'+fmt(weekSec())+'</b><span>'+L("this week")+'</span></div></div></div></section>';
 }
 function tenseMap(lv){
   const mine=new Set(LV[lv].t),known=new Set(lvTenses(lv));
@@ -846,13 +852,7 @@ function vPlan(){
   const vk=vset.filter(v=>S.verbs.includes(v.v1)).length;
   const bestT=S.best["tense-"+S.level]||0;
   let h=todayCard()+vRoute();
-  h+='<section class="card hero"><div><p class="eyebrow">'+L("Your level")+'</p><h1>'+L0.name+'<small>'+L0.cefr+'</small></h1><p class="muted" style="margin-top:6px">'+esc(lx(S.level,"desc"))+'</p></div>'+
-   '<div class="big3"><div><b class="num">'+ids.length+'</b><span>'+L("new grammar topics")+'</span></div><div><b class="num">'+L0.verbs+'</b><span>'+L("verbs")+' ('+esc(lx(S.level,"verbsNote"))+')</span></div><div><b class="num">'+L0.words+'</b><span>'+L("words in total")+'</span></div></div>'+
-   '<p class="small muted">'+esc(lx(S.level,"time"))+'.</p>'+(L0.soon?'<p class="note">'+L("This level is a preview. The tense lessons work now. More practice for this level is coming soon. Finish Beginner and Pre-Intermediate first.")+'</p>':"")+'</section>';
-  h+='<section class="card stack"><div class="row between"><h2>'+L("All 12 English tenses")+'</h2><span class="small muted">'+L("Thick border = your level. Tap any tense.")+'</span></div>'+tenseMap(S.level)+
-   (S.level==="a1"?'<p class="small muted">'+L("Beginner also has extra topics: the verb “to be”, articles a / an and “going to”. Find them in the Tenses tab.")+'</p>':S.level==="a2"?'<p class="small muted">'+L("Pre-Intermediate also adds the article “the” and modal verbs (can, could, must, should).")+'</p>':"")+'</section>';
-
-  h+='<section class="card stack"><h2>'+L("Also at this level")+'</h2><ul class="uses">'+lx(S.level,"also").map(a=>'<li>'+esc(a)+'</li>').join("")+'</ul></section>';
+  h+='<section class="card lvstrip"><div><span class="eyebrow">'+L("Your level")+'</span><b>'+L0.name+' · '+L0.cefr+'</b></div><div class="lvfacts"><span>📘 <b class="num">'+ids.length+'</b> '+L("topics")+'</span><span>🔤 <b class="num">'+L0.verbs+'</b> '+L("verbs")+'</span><span>🗂 <b class="num">'+L0.words+'</b> '+L("words")+'</span></div></section>';
   return h;
 }
 function vIelts(){
@@ -869,6 +869,7 @@ function tCard(id){const t=T[id],d=S.tenses.includes(id);
 function vTenses(){
   const L0=LV[S.level];let h=vBuilder()+'<section class="stack"><div><h2>'+L("{name} grammar",{name:L0.name})+'</h2><p class="muted small">'+L("Tap a card to see the rule, examples, a mini quiz and a video lesson.")+'</p></div><div class="grid g3">'+L0.t.map(tCard).join("")+'</div></section>';
   if(L0.review){const r=lvTenses(L0.review);h+='<section class="stack"><div><h2>'+L("Review from earlier levels")+'</h2><p class="muted small">'+L("You need these too. Check that you still remember them.")+'</p></div><div class="grid g3">'+r.map(tCard).join("")+'</div></section>'}
+  h+='<details class="card tdet"><summary>'+L("All 12 English tenses")+'</summary>'+tenseMap(S.level)+'</details>';
   return h;
 }
 function openTense(id){
@@ -1037,7 +1038,7 @@ Object.assign(UI,{
 "Watch a short video, then read the rule below and do the mini quiz.":["Qisqa videoni ko'ring, keyin pastdagi qoidani o'qing va kichik testni bajaring.","Посмотрите короткое видео, затем прочитайте правило ниже и пройдите мини-тест."],
 "Video in English":["Inglizcha video","Видео на английском"],"Video explained in Uzbek":["O'zbekcha tushuntirilgan video","Видео с объяснением на узбекском"],"Video explained in Russian":["Ruscha tushuntirilgan video","Видео с объяснением на русском"],
 "Starting level":["Boshlang'ich daraja","Начальный уровень"],
-"Not sure about the level? Take the checkpoint test. 8 of 10 or more means this level is already known, so choose the next one.":["Darajani bilmaysizmi? Nazorat testini topshiring. 10 dan 8 va undan ko'p bo'lsa, bu daraja allaqachon bilinadi — keyingisini tanlang.","Не знаете уровень? Пройдите контрольный тест. 8 из 10 и больше — этот уровень уже знаком, выбирайте следующий."],
+"Not sure about the level? Take the checkpoint test. 8 of 10 or more means this level is already known, so choose the next one.":["Bilasizmi? Nazorat testidan o'ting va keyingisiga o'ting.","Уже знаете? Сдайте тест и идите дальше."],
 "Progress by level":["Darajalar bo'yicha natija","Прогресс по уровням"],"Steps":["Qadamlar","Шаги"],
 "Route":["Yo'l","Путь"],"Your route map":["Sizning yo'l xaritangiz","Ваша карта пути"],
 "{d} of {n} steps done":["{n} qadamdan {d} tasi bajarildi","Пройдено {d} из {n} шагов"],
@@ -1067,7 +1068,7 @@ Object.assign(UI,{
 const ROUTE=(function(){const r=[],pk=(lv,k)=>({type:"verbs",lv:lv,k:k});
   const seq=(lv,a)=>a.forEach(x=>r.push(typeof x==="number"?pk(lv,x):x.slice(0,2)==="w:"?{type:"words",lv:lv,c:x.slice(2)}:{type:"tense",lv:lv,id:x}));
   seq("a1",["tobe",0,"w:family","art1","plural","w:numbers","pron","ps",1,"w:food","poss","demo","w:colours","pc",2,"w:animals","thereis","pplace","w:home","past",3,"w:body","ptime","qwords","w:school","goingto",4]);r.push({type:"check",lv:"a1"});
-  seq("a2",["pastc",0,"w:clothes","art2","compar","pp",1,"w:weather","quant","fs",2,"w:transport","adverb","modals",3,"w:actions",4,"w:feelings"]);r.push({type:"check",lv:"a2"});
+  seq("a2",["pastc",0,"w:clothes","art2","compar","w:fruitveg","pp",1,"w:weather","quant","w:places","fs","pmove","w:directions",2,"w:transport","adverb","w:jobs","modals",3,"w:actions","w:sports",4,"w:feelings","w:nature"]);r.push({type:"check",lv:"a2"});
   seq("b1",["ppc","cond12","pastp","passive","usedto","fc","gerinf","relcl"]);r.push({type:"check",lv:"b1"});
   seq("b2",["pastpc","cond3","fp","reported","deduct","fpc","wish","phrasal"]);r.push({type:"check",lv:"b2"});
   seq("ielts",["inversion","cleft","linking","partcl","hedging"]);r.push({type:"check",lv:"ielts"});
@@ -1573,6 +1574,15 @@ G("hedging",{n:"Academic style and hedging",s:"It could be argued that…",
  q:[["___ that social media affects sleep.",["It is widely believed","I am 100% sure","Everybody knows"],0],["Teenagers ___ to sleep later than adults.",["tend","are tend","tending"],0],["The government decided → the government's ___",["decide","decision","deciding"],1],["This ___ suggest that the plan was successful.",["may","must to","is"],0]]},
  ["Akademik uslub va ehtiyotkorlik: It could be argued that…","Ehtiyotkor iboralarni aniq fikr bilan aralashtiring. IELTS 2-topshiriqda pozitsiyangiz baribir aniq bo'lishi kerak.",["Akademik yozuvda haddan tashqari ishonch bilan gapirmang: It is likely that…, This may suggest…, It could be argued that…","I think o'rniga shaxssiz shakllar: It is widely believed that…, Many experts claim that…","Rasmiy uslub uchun otlardan foydalaning: Prices increased → There was an increase in prices."]],
  ["Академический стиль и смягчение: It could be argued that…","Сочетайте осторожные фразы с ясным мнением. В IELTS Task 2 позиция всё равно должна быть ясной.",["В академическом письме не звучите слишком категорично: It is likely that…, This may suggest…, It could be argued that…","Безличные формы вместо I think: It is widely believed that…, Many experts claim that…","Используйте существительные (номинализация): Prices increased → There was an increase in prices."]]);
+G("pmove",{n:"Prepositions of movement",s:"into, out of, up, down, across, through",
+ uses:["into / out of: go in or leave. She ran into the room. He got out of the car.","up / down: higher or lower. We climbed up the hill. The ball rolled down the stairs.","across / through / along: Walk across the road. The train went through the tunnel. We walked along the river.","to / from / towards / past / around / over / under: Go past the bank. Jump over the fence."],
+ f:["movement verb + preposition + place","go / walk / run / drive / jump / fly + into, across, through…","from A to B"],
+ ex:["The cat jumped [onto] the table.","She walked [into] the classroom.","We ran [across] the street.","The car went [through] the tunnel.","He climbed [up] the tree."],
+ sig:["Where to?","go, walk, run, drive"],m:["She went in the room.","She went into the room."],tip:"in / on = where something is. into / onto = moving to a place.",
+ q:[["The dog jumped ___ the river.",["into","in","at"],0],["We walked ___ the bridge to the other side.",["across","into","up"],0],["The train goes ___ a long tunnel.",["through","over","onto"],0],["He climbed ___ the ladder to the roof.",["up","down","out of"],0]]},
+ ["Harakat predloglari: into, out of, up, down, across, through","in / on = qayerda turgani. into / onto = biror joyga harakat.",["into / out of: kirish yoki chiqish. She ran into the room. He got out of the car.","up / down: yuqoriga yoki pastga. We climbed up the hill. The ball rolled down the stairs.","across (kesib o'tib) / through (ichidan o'tib) / along (bo'ylab): Walk across the road. The train went through the tunnel. We walked along the river.","to / from / towards / past / around / over / under: Go past the bank. Jump over the fence."]],
+ ["Предлоги движения: into, out of, up, down, across, through","in / on = где находится. into / onto = движение куда-то.",["into / out of: войти или выйти. She ran into the room. He got out of the car.","up / down: вверх или вниз. We climbed up the hill. The ball rolled down the stairs.","across (через) / through (сквозь) / along (вдоль): Walk across the road. The train went through the tunnel. We walked along the river.","to / from / towards / past / around / over / under: Go past the bank. Jump over the fence."]]);
+VID.pmove=["Rai_E2EjOBw","Oxford Online English",9,"_G4RUdiww3Q","Nuriya Akhmedovna",12];
 Object.assign(VID,{
  plural:["L4B7XxuJO6A","Ellii (ESL Library)",4,"1zEdlLKQYUM","INGLIZ TILI DUNYOSI",2],
  pron:["aqJMbCvduhY","Ellii (ESL Library)",5,"1KqXJ3qNtpU","INGLIZ TILI DUNYOSI",3],
@@ -1603,6 +1613,7 @@ Object.assign(VID,{
 
 /* ---------------- picture vocabulary (beginner) ---------------- */
 Object.assign(UI,{
+"topics":["mavzu","тем"],"words":["so'z","слов"],
 "Show the full map":["To'liq xaritani ko'rsatish","Показать всю карту"],"Shorten the map":["Xaritani qisqartirish","Свернуть карту"],
 "Saved online":["Internetga saqlandi","Сохранено онлайн"],"Could not save. Check the internet connection.":["Saqlab bo'lmadi. Internetni tekshiring.","Не удалось сохранить. Проверьте интернет."],
 "Words":["So'zlar","Слова"],"Picture words":["Rasmli so'zlar","Слова в картинках"],"Words learned":["Yodlangan so'zlar","Выучено слов"],
@@ -1630,7 +1641,13 @@ const VOC=[
  ["weather","☀️",["Weather","Ob-havo","Погода"],[["sun","☀️","quyosh","солнце"],["rain","🌧️","yomg'ir","дождь"],["snow","❄️","qor","снег"],["cloud","☁️","bulut","облако"],["wind","💨","shamol","ветер"],["hot","🥵","issiq","жарко"],["cold","🥶","sovuq","холодно"],["rainbow","🌈","kamalak","радуга"],["moon","🌙","oy","луна"],["star","⭐","yulduz","звезда"]]],
  ["transport","🚗",["Transport","Transport","Транспорт"],[["car","🚗","mashina","машина"],["bus","🚌","avtobus","автобус"],["train","🚆","poyezd","поезд"],["plane","✈️","samolyot","самолёт"],["bike","🚲","velosiped","велосипед"],["taxi","🚕","taksi","такси"],["ship","🚢","kema","корабль"],["metro","🚇","metro","метро"],["truck","🚚","yuk mashinasi","грузовик"],["ambulance","🚑","tez yordam","скорая помощь"]]],
  ["actions","🏃",["Actions","Harakatlar","Действия"],[["run","🏃","yugurmoq","бегать"],["walk","🚶","yurmoq","ходить"],["swim","🏊","suzmoq","плавать"],["sleep","😴","uxlamoq","спать"],["eat","🍽️","yemoq","есть"],["drink","🥤","ichmoq","пить"],["read","📚","o'qimoq","читать"],["write","✍️","yozmoq","писать"],["sing","🎤","kuylamoq","петь"],["dance","💃","raqsga tushmoq","танцевать"],["play","⚽","o'ynamoq","играть"],["cook","🧑‍🍳","ovqat pishirmoq","готовить"]]],
- ["feelings","😊",["Feelings","His-tuyg'ular","Чувства"],[["happy","😊","xursand","счастливый"],["sad","😢","xafa","грустный"],["angry","😠","jahldor","злой"],["tired","😫","charchagan","уставший"],["scared","😨","qo'rqqan","испуганный"],["hungry","🤤","och","голодный"],["sick","🤒","kasal","больной"],["surprised","😲","hayron","удивлённый"]]]
+ ["feelings","😊",["Feelings","His-tuyg'ular","Чувства"],[["happy","😊","xursand","счастливый"],["sad","😢","xafa","грустный"],["angry","😠","jahldor","злой"],["tired","😫","charchagan","уставший"],["scared","😨","qo'rqqan","испуганный"],["hungry","🤤","och","голодный"],["sick","🤒","kasal","больной"],["surprised","😲","hayron","удивлённый"]]],
+ ["fruitveg","🥕",["Fruit & vegetables","Meva va sabzavotlar","Фрукты и овощи"],[["orange","🍊","apelsin","апельсин"],["pear","🍐","nok","груша"],["peach","🍑","shaftoli","персик"],["cherry","🍒","olcha","вишня"],["strawberry","🍓","qulupnay","клубника"],["lemon","🍋","limon","лимон"],["melon","🍈","qovun","дыня"],["tomato","🍅","pomidor","помидор"],["potato","🥔","kartoshka","картофель"],["cucumber","🥒","bodring","огурец"],["onion","🧅","piyoz","лук"],["corn","🌽","makkajo'xori","кукуруза"]]],
+ ["places","🏙️",["Places in town","Shahardagi joylar","Места в городе"],[["hospital","🏥","kasalxona","больница"],["shop","🏪","do'kon","магазин"],["bank","🏦","bank","банк"],["park","🏞️","bog'","парк"],["mosque","🕌","masjid","мечеть"],["restaurant","🍴","restoran","ресторан"],["hotel","🏨","mehmonxona","гостиница"],["airport","🛫","aeroport","аэропорт"],["stadium","🏟️","stadion","стадион"],["museum","🏛️","muzey","музей"],["post office","🏤","pochta","почта"],["cinema","🎬","kinoteatr","кинотеатр"]]],
+ ["directions","🧭",["Directions","Yo'nalishlar","Направления"],[["up","⬆️","yuqoriga","вверх"],["down","⬇️","pastga","вниз"],["left","⬅️","chapga","налево"],["right","➡️","o'ngga","направо"],["around","🔄","atrofida","вокруг"],["back","↩️","orqaga","назад"],["near","📍","yaqin","близко"],["far","🔭","uzoq","далеко"]]],
+ ["jobs","👷",["Jobs","Kasblar","Профессии"],[["doctor","🧑‍⚕️","shifokor","врач"],["police officer","👮","politsiyachi","полицейский"],["farmer","🧑‍🌾","fermer","фермер"],["chef","🧑‍🍳","oshpaz","повар"],["firefighter","🧑‍🚒","o't o'chiruvchi","пожарный"],["pilot","🧑‍✈️","uchuvchi","пилот"],["builder","👷","quruvchi","строитель"],["artist","🧑‍🎨","rassom","художник"],["singer","🧑‍🎤","qo'shiqchi","певец"],["scientist","🧑‍🔬","olim","учёный"],["mechanic","🧑‍🔧","mexanik","механик"],["driver","🚖","haydovchi","водитель"]]],
+ ["sports","⚽",["Sports","Sport","Спорт"],[["football","⚽","futbol","футбол"],["basketball","🏀","basketbol","баскетбол"],["tennis","🎾","tennis","теннис"],["volleyball","🏐","voleybol","волейбол"],["boxing","🥊","boks","бокс"],["chess","♟️","shaxmat","шахматы"],["cycling","🚴","velosport","велоспорт"],["skiing","⛷️","chang'i","лыжи"],["wrestling","🤼","kurash","борьба"],["table tennis","🏓","stol tennisi","настольный теннис"]]],
+ ["nature","🌳",["Nature","Tabiat","Природа"],[["tree","🌳","daraxt","дерево"],["flower","🌷","gul","цветок"],["mountain","⛰️","tog'","гора"],["sea","🌊","dengiz","море"],["forest","🌲","o'rmon","лес"],["grass","🌱","o't","трава"],["leaf","🍃","barg","лист"],["desert","🏜️","cho'l","пустыня"],["island","🏝️","orol","остров"],["volcano","🌋","vulqon","вулкан"],["stone","🪨","tosh","камень"]]]
 ];
 const VOCALL=[];VOC.forEach(c=>c[3].forEach(w=>VOCALL.push({k:c[0]+":"+w[0],c:c[0],en:w[0],e:w[1],uz:w[2],ru:w[3]})));
 const vcat=id=>VOC.find(c=>c[0]===id);
