@@ -912,11 +912,11 @@ function vVerbs(){
    [["pics","Picture words"],["irr","Irregular verbs"],["reg","Regular verbs"],["fc","Flashcards"]].map(s=>'<button data-a="vsub" data-v="'+s[0]+'" aria-pressed="'+(VSUB===s[0])+'">'+L(s[1])+'</button>').join("")+'</div></section>';
   if(VSUB==="irr"){
     const list=levelVerbs(S.level),k=list.filter(v=>S.verbs.includes(v.v1)).length;
-    h+='<section class="stack"><div class="sub vfilt">'+[["all","All",list.length],["known","I know",k],["new","Need to learn",list.length-k]].map(f=>'<button data-a="vf" data-v="'+f[0]+'" aria-pressed="'+(VF===f[0])+'">'+L(f[1])+' <span class="num">'+f[2]+'</span></button>').join("")+'</div>'+
+    h+=verbVideos(VV_IRR)+'<section class="stack"><div class="sub vfilt">'+[["all","All",list.length],["known","I know",k],["new","Need to learn",list.length-k]].map(f=>'<button data-a="vf" data-v="'+f[0]+'" aria-pressed="'+(VF===f[0])+'">'+L(f[1])+' <span class="num">'+f[2]+'</span></button>').join("")+'</div>'+
      '<div class="grid g2"><button class="btn primary" data-a="vquizk"'+(k?"":" disabled")+'>'+L("Test the verbs I know")+' <span class="num">('+k+')</span></button><button class="btn" data-a="vlearn"'+(list.length-k?"":" disabled")+'>'+L("Learn the new verbs")+' <span class="num">('+(list.length-k)+')</span></button></div>'+
      '<p class="small muted">'+L("Tap a verb to hear each form and mark it.")+'</p><input class="search" id="vsearch" type="search" placeholder="'+esc(L("Search a verb, e.g. go"))+'" value="'+esc(VQ)+'" aria-label="'+esc(L("Search a verb, e.g. go"))+'"><div class="tbl-wrap"><table class="vtbl"><thead><tr><th>V1</th><th>V2</th><th>V3</th><th>'+L("Meaning")+'</th></tr></thead><tbody id="vbody">'+irrRows(list)+'</tbody></table></div></section>';
   }else if(VSUB==="reg"){
-    h+='<section class="card stack"><h3>'+L("How to make the past form")+'</h3><div class="grid g2">'+
+    h+=verbVideos(VV_REG)+'<section class="card stack"><h3>'+L("How to make the past form")+'</h3><div class="grid g2">'+
      [["Most verbs: + ed","work → worked, play → played"],["Ends in e: + d","like → liked, dance → danced"],["Consonant + y: y → ied","study → studied, try → tried"],["Short verb, 1 vowel + 1 consonant: double it","stop → stopped, plan → planned"]].map(r=>'<div class="note"><b>'+L(r[0])+'</b><div class="small">'+r[1]+'</div></div>').join("")+
      '</div><h3>'+L("How to say -ed")+'</h3><div class="grid g3"><div class="note"><span class="snd">/t/</span> '+L("after p, k, s, sh, ch, f")+'<div class="small">walked, watched, stopped</div></div><div class="note"><span class="snd">/d/</span> '+L("after other sounds")+'<div class="small">played, cleaned, lived</div></div><div class="note"><span class="snd">/ɪd/</span> '+L("after t and d")+'<div class="small">wanted, needed, visited</div></div></div></section>'+
      '<div class="tbl-wrap"><table><thead><tr><th>'+L("Verb")+'</th><th>'+L("Past (V2 = V3)")+'</th>'+(S.lang==="en"?"":'<th>'+L("Meaning")+'</th>')+'<th>'+L("Sound")+'</th><th></th></tr></thead><tbody>'+REG.map(v=>'<tr><td class="v1">'+v.v1+'</td><td>'+v.v2+'</td>'+(S.lang==="en"?"":'<td class="mn">'+esc(mean(v))+'</td>')+'<td><span class="snd">/'+(v.snd==="id"?"ɪd":v.snd)+'/</span></td><td>'+sayBtn(v.v1+", "+v.v2)+'</td></tr>').join("")+'</tbody></table></div>';
@@ -1760,6 +1760,13 @@ function reviewCard(){
 }
 function dropReview(key){if((SET.review||[]).includes(key))setShared({review:SET.review.filter(k=>k!==key)})}
 
+/* video card for the verbs pages */
+function verbVideos(items){
+  const mn=S.lang==="uz"?"daq":S.lang==="ru"?"мин":"min";
+  return '<section class="card stack vidcard"><h3>'+L("Watch the video lesson first")+'</h3>'+items.filter(x=>S.lang!=="en"||!x[3]).map(x=>'<p class="eyebrow">'+L(x[4])+'</p><a class="vlink" data-a="ytlink" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v='+x[0]+'"><span class="play big"></span><span style="min-width:0"><b>'+esc(x[1])+'</b><br><span class="small muted num">'+x[2]+' '+mn+'</span></span></a>').join("")+'</section>';
+}
+const VV_REG=[["LkyCYeDdvgI","Woodward English",18,0,"Lesson in English"],["9TPe_x80Pgs","Woodward English",9,0,"How to say -ed"],["TCQssnI3H0M","INGLIZ TILI DUNYOSI",2,1,"Explained in Uzbek"]];
+const VV_IRR=[["wmkfguEKuqM","Woodward English",18,0,"Lesson in English"],["TCQssnI3H0M","INGLIZ TILI DUNYOSI",2,1,"Explained in Uzbek"]];
 /* ---------------- render & events ---------------- */
 function render(){
   renderChrome();
