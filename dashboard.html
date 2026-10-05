@@ -271,6 +271,16 @@ tr:last-child td{border-bottom:0}
 .lvfacts{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:.95rem}
 .tdet summary{cursor:pointer;font-weight:600;font-size:1.05rem}
 .tdet[open] summary{margin-bottom:12px}
+.momcheck{border:2px solid var(--present)}
+.btn.big{min-height:56px;font-size:1.1rem;justify-content:center}
+.mcard{text-align:center}
+.mcq{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 0}
+.mcq b{font-size:1.6rem}
+.mcans{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px;border-radius:14px;background:var(--hl);color:var(--hl-ink)}
+.mcans b{font-size:1.8rem}
+.btn.mcyes{background:var(--good);border-color:var(--good);color:var(--surface);min-height:56px;justify-content:center;font-size:1.1rem}
+.btn.mcno{background:var(--bad);border-color:var(--bad);color:var(--surface);min-height:56px;justify-content:center;font-size:1.1rem}
+.reviewc{border:2px solid var(--past)}
 .maptoggle{display:flex;justify-content:center;padding-top:8px}
 .vcats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
 .vcat{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 10px;border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink)}
@@ -535,7 +545,7 @@ function saveState(){S.upd=Date.now();LS.set("elb.state",S);clearTimeout(saveT);
 let PARENT=false,PIN_OK=false,SET={},LASTSEEN=0,KIDLV="";
 try{if((location.hash==="#parent"&&!window.ELB_KID)||window.ELB_PARENT)PARENT=true}catch(e){}
 /* optional Firebase (own website): one family document tree, shared by the child and the parent */
-const FB=window.ELB_FB&&window.ELB_FB.projectId?window.ELB_FB:null;
+const FB=window.ELB_FB&&window.ELB_FB.projectId&&!/nosync/.test(location.search||"")?window.ELB_FB:null;
 function fbUrl(p){return "https://firestore.googleapis.com/v1/projects/"+FB.projectId+"/databases/(default)/documents/families/"+FB.fam+"/"+p+(FB.apiKey?"?key="+FB.apiKey:"")}
 function fbSet(p,data){return fetch(fbUrl(p),{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({fields:{json:{stringValue:JSON.stringify(data)}}})}).then(r=>{if(!r.ok)throw new Error("save "+r.status)})}
 function fbGet(p,coll){const u=fbUrl(p);return fetch(u+(coll?(u.indexOf("?")<0?"?":"&")+"pageSize=300":"")).then(r=>r.ok?r.json():null)}
@@ -846,12 +856,12 @@ function tenseMap(lv){
   return h+'</div>';
 }
 function vPlan(){
-  if(S.level==="ielts")return todayCard()+vRoute()+vIelts();
+  if(S.level==="ielts")return todayCard()+reviewCard()+vRoute()+vIelts();
   const L0=LV[S.level],ids=L0.t,done=ids.filter(i=>S.tenses.includes(i)).length;
   const vset=S.level==="a1"?IRR.filter(v=>v.lv==="a1"):S.level==="a2"?IRR.filter(v=>v.lv==="a2"):IRR;
   const vk=vset.filter(v=>S.verbs.includes(v.v1)).length;
   const bestT=S.best["tense-"+S.level]||0;
-  let h=todayCard()+vRoute();
+  let h=todayCard()+reviewCard()+vRoute();
   h+='<section class="card lvstrip"><div><span class="eyebrow">'+L("Your level")+'</span><b>'+L0.name+' · '+L0.cefr+'</b></div><div class="lvfacts"><span>📘 <b class="num">'+ids.length+'</b> '+L("topics")+'</span><span>🔤 <b class="num">'+L0.verbs+'</b> '+L("verbs")+'</span><span>🗂 <b class="num">'+L0.words+'</b> '+L("words")+'</span></div></section>';
   return h;
 }
@@ -1121,12 +1131,14 @@ function whenTxt(t){if(!t)return L("never");const d=new Date(t),hm=String(d.getH
 function vParent(){
   if(!SET.pin&&!PIN_OK)return '<section class="card stack" style="max-width:420px;margin:30px auto;width:100%"><h2>'+L("Create a PIN")+'</h2><p class="muted small">'+L("Create a 4-digit PIN for this page. Only you will know it.")+'</p><form class="pin" id="setpin"><input id="newpin" type="password" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="PIN"><button class="btn primary" type="submit">'+L("Save PIN")+'</button></form></section>';
   if(SET.pin&&!PIN_OK)return '<section class="card stack" style="max-width:420px;margin:30px auto;width:100%"><h2>'+L("Parent dashboard")+'</h2><p class="muted small">'+L("Enter PIN")+'</p><form class="pin" id="pinform"><input id="pinin" type="password" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="PIN"><button class="btn primary" type="submit">'+L("Open")+'</button></form></section>';
+  if(MC)return vMomCheck();
   const klv=(S.last||0)>=LASTSEEN?S.level:(KIDLV||S.level),st=routeStart(klv),part=ROUTE.slice(st),today=dayTotal(dk()),studied=today>=60,cur=curIdx(klv),cn=ROUTE[cur],done=part.filter(nodeDone).length,pct=Math.round(done/part.length*100);
   const vk=IRR.filter(v=>S.verbs.includes(v.v1)).length,allT=Object.keys(T),tk=allT.filter(id=>S.tenses.includes(id)).length;
   const last=Math.max(S.last||0,LASTSEEN);
   let h='<section class="stack"><div class="row between"><h1>'+L("Parent dashboard")+'</h1><span class="tag">'+(SYNC==="synced"?L("Data from all devices, updated live."):L("Only this device's data. Cloud sync is not connected."))+'</span></div></section>';
   h+='<section class="card stack"><div class="row between"><span class="pill '+(studied?"ok":"no")+'">'+(studied?"✓ "+L("Studied today"):"✗ "+L("Not yet today"))+'</span><span class="small muted">'+L("Last active: {t}",{t:whenTxt(last)})+'</span></div>'+
    '<div class="row" style="align-items:baseline"><b style="font-size:2.2rem" class="num">'+fmt(today)+'</b><span class="muted">'+L("of {n} min",{n:S.goal})+'</span></div><div class="bar"><i style="width:'+Math.min(100,today/(S.goal*60)*100)+'%"></i></div></section>';
+  h+=momCheckCard();
   h+='<div class="kpis">'+[[fmt(weekSec()),L("this week (Mon–Sun)")],[fmt(monthSec()),L("this month")],[fmt(totalSec()),L("total")],[L("{n} days",{n:streak()}),L("streak")],[(S.words||[]).length+" / "+VOCALL.length,L("Words learned in quizzes")],[vk+" / "+IRR.length,L("Verbs learned")],[fmt(sum7v()),L("Videos (he added himself)")+" · 7d"],[tk+" / "+allT.length,L("Tenses learned")]].map(k=>'<div class="kpi"><b class="num">'+k[0]+'</b><span>'+k[1]+'</span></div>').join("")+'</div>';
   h+='<section class="card stack"><div class="row between"><h3>'+L("Route progress")+'</h3><span class="tag'+(pct===100?" ok":"")+'">'+pct+'%</span></div><div class="bar"><i style="width:'+pct+'%"></i></div><p class="small">'+L("{d} of {n} steps done",{d:done,n:part.length})+'</p>'+(cn?'<p class="note"><span class="eyebrow">'+L("Current step")+'</span><br><b>'+esc(nodeTitle(cn)[0])+'</b> · '+LV[cn.lv].cefr+' '+LV[cn.lv].name+'</p>':"")+'</section>';
   h+='<p class="note small">'+L("Time in the app is measured automatically. Video time is what he entered himself.")+'</p>';
@@ -1666,8 +1678,8 @@ function vVocab(){
    '<p class="small muted">'+L("Tap a picture to hear the word.")+'</p><div class="vgrid">'+ws.map(w=>{const on=S.words.includes(w.k);
      return '<button class="vcard'+(on?" on":"")+'" data-a="say" data-v="'+esc(w.en)+'"><span class="vemo">'+w.e+'</span><b>'+esc(w.en)+'</b>'+(S.lang!=="en"?'<span class="small muted">'+esc(vtr(w))+'</span>':"")+(on?'<span class="vok">✓</span>':"")+'</button>'}).join("")+'</div></section>';
 }
-function startVocabQuiz(mode){
-  const pool=VOCALL.filter(w=>w.c===VCAT),others=VOCALL.filter(w=>w.c!==VCAT);
+function startVocabQuiz(mode,list){
+  const pool=list&&list.length?list:VOCALL.filter(w=>w.c===VCAT),others=VOCALL.filter(w=>!pool.includes(w));
   const qs=shuffle(pool).slice(0,10).map(w=>{const wrong=shuffle(pool.filter(x=>x!==w)).slice(0,3);while(wrong.length<3)wrong.push(shuffle(others)[0]);const o=shuffle([w].concat(wrong));return{w:w,o:o,a:o.indexOf(w)}});
   PQ={type:"vocab",mode:mode,cat:VCAT,qs:qs,i:0,score:0,ans:null};
 }
@@ -1687,6 +1699,67 @@ function vVocabQuiz(){
 
 function sum7v(){let s=0;for(let i=0;i<7;i++){const x=new Date();x.setDate(x.getDate()-i);const k=dk(x);s+=VIDT[k]||0;for(const o in OTHV)s+=OTHV[o][k]||0}return s}
 NI.words='<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/>';
+/* ---------------- mum checks the child (no English needed) ---------------- */
+Object.assign(UI,{
+"Check your child":["Farzandingizni tekshiring","Проверьте ребёнка"],
+"You don't need to know English. Show the picture, ask your child, then listen to the right answer.":["Ingliz tilini bilishingiz shart emas. Rasmni ko'rsating, farzandingizdan so'rang, keyin to'g'ri javobni eshiting.","Знать английский не нужно. Покажите картинку, спросите ребёнка, затем послушайте правильный ответ."],
+"Ask: What is this in English?":["So'rang: Bu inglizcha nima?","Спросите: Как это по-английски?"],
+"Ask: Say the 3 forms of this verb.":["So'rang: Bu fe'lning 3 ta shaklini ayt.","Спросите: Назови 3 формы этого глагола."],
+"Show the answer":["Javobni ko'rsatish","Показать ответ"],"He knew it":["Bildi","Знает"],"He didn't know":["Bilmadi","Не знает"],
+"Check finished":["Tekshiruv tugadi","Проверка завершена"],"He knew {k} of {n}.":["{n} tadan {k} tasini bildi.","Знает {k} из {n}."],
+"These go back to his review list:":["Bular qayta o'rganish ro'yxatiga qo'shildi:","Это добавлено в список на повторение:"],
+"Past checks":["Oldingi tekshiruvlar","Прошлые проверки"],"Back to dashboard":["Panelga qaytish","Назад к панели"],
+"Mum checked you. Learn these again:":["Onangiz tekshirdi. Bularni qayta o'rganing:","Мама проверила. Повтори это:"],"Practise now":["Hozir mashq qilish","Тренироваться"],
+"Words he answered correctly in quizzes are asked first.":["Avval testda to'g'ri javob bergan so'zlari so'raladi.","Сначала спрашиваются слова, которые он правильно ответил в тестах."],
+"Listen again":["Yana eshitish","Послушать ещё"],"Words":["So'zlar","Слова"]
+});
+let MC=null;
+function momPool(type){
+  if(type==="words"){const known=VOCALL.filter(w=>(S.words||[]).includes(w.k));let pool=shuffle(known).slice(0,10);
+    if(pool.length<10){const extra=shuffle(VOCALL.filter(w=>!pool.includes(w)&&["family","numbers","food","colours","animals"].includes(w.c)));pool=pool.concat(extra.slice(0,10-pool.length))}
+    return pool.map(w=>({key:w.k,pic:w.e,ask:S.lang==="ru"?w.ru:S.lang==="en"?w.en:w.uz,ans:w.en,speak:w.en}))}
+  const known=IRR.filter(v=>S.verbs.includes(v.v1));let pool=shuffle(known).slice(0,10);
+  if(pool.length<10){const extra=shuffle(IRR.filter(v=>v.lv==="a1"&&!pool.includes(v)));pool=pool.concat(extra.slice(0,10-pool.length))}
+  return pool.map(v=>({key:"v:"+v.v1,pic:"🔤",ask:mean(v),ans:v.v1+" – "+v.v2+" – "+v.v3,speak:say3(v)}));
+}
+function vMomCheck(){
+  const N=MC.items.length;
+  if(MC.i>=N){
+    const miss=MC.items.filter((x,j)=>!MC.res[j]);
+    return '<section class="card stack" style="align-items:flex-start"><p class="eyebrow">'+L("Check your child")+'</p><h1 class="num">'+(N-miss.length)+' / '+N+'</h1><p>'+L("He knew {k} of {n}.",{k:N-miss.length,n:N})+'</p>'+
+     (miss.length?'<p class="small muted">'+L("These go back to his review list:")+'</p><div class="chips">'+miss.map(x=>'<span>'+x.pic+' '+esc(x.ans)+'</span>').join("")+'</div>':"")+
+     '<button class="btn primary" data-a="mcend">'+L("Back to dashboard")+'</button></section>';
+  }
+  const it=MC.items[MC.i];
+  let h='<section class="card stack mcard"><div class="row between"><span class="small muted num">'+L("Question {i} of {n}",{i:MC.i+1,n:N})+'</span><button class="btn sm" data-a="mcend">×</button></div><div class="bar"><i style="width:'+(MC.i/N*100)+'%"></i></div>'+
+   '<p class="note">'+L(MC.type==="words"?"Ask: What is this in English?":"Ask: Say the 3 forms of this verb.")+'</p>'+
+   '<div class="mcq"><span class="vbig">'+it.pic+'</span><b>'+esc(it.ask)+'</b></div>';
+  if(!MC.show)h+='<button class="btn primary big" data-a="mcshow">'+L("Show the answer")+' 🔊</button>';
+  else h+='<div class="mcans"><b>'+esc(it.ans)+'</b>'+(CAN_SAY?'<button class="btn sm" data-a="say" data-v="'+esc(it.speak)+'">🔊 '+L("Listen again")+'</button>':"")+'</div>'+
+   '<div class="grid g2"><button class="btn mcyes" data-a="mcmark" data-v="1">✓ '+L("He knew it")+'</button><button class="btn mcno" data-a="mcmark" data-v="0">✗ '+L("He didn't know")+'</button></div>';
+  return h+'</section>';
+}
+function momCheckCard(){
+  const hist=(SET.checks||[]).slice(-5).reverse();
+  return '<section class="card stack momcheck"><h2>👩 '+L("Check your child")+'</h2><p class="small muted">'+L("You don't need to know English. Show the picture, ask your child, then listen to the right answer.")+'</p>'+
+   '<div class="grid g2"><button class="btn primary big" data-a="mcstart" data-v="words">🍎 '+L("Words")+'</button><button class="btn primary big" data-a="mcstart" data-v="verbs">🔤 '+L("Verbs")+'</button></div>'+
+   '<p class="small muted">'+L("Words he answered correctly in quizzes are asked first.")+'</p>'+
+   (hist.length?'<h3>'+L("Past checks")+'</h3><div class="tbl-wrap"><table><tbody>'+hist.map(c=>'<tr><td>'+esc(typeof c.d==="number"?whenTxt(c.d):c.d)+'</td><td>'+(c.t==="words"?"🍎 "+L("Words"):"🔤 "+L("Verbs"))+'</td><td class="num"><b>'+c.k+' / '+c.n+'</b></td></tr>').join("")+'</tbody></table></div>':"")+'</section>';
+}
+function finishMomCheck(){
+  const miss=MC.items.filter((x,j)=>!MC.res[j]).map(x=>x.key),known=MC.items.filter((x,j)=>MC.res[j]).map(x=>x.key);
+  const review=[...new Set([...(SET.review||[]).filter(k=>!known.includes(k)),...miss])];
+  const checks=(SET.checks||[]).concat([{d:Date.now(),t:MC.type,k:MC.items.length-miss.length,n:MC.items.length}]).slice(-30);
+  setShared({review:review,checks:checks});
+}
+function reviewCard(){
+  const rv=SET.review||[];if(!rv.length||PARENT)return"";
+  const ws=VOCALL.filter(w=>rv.includes(w.k)),vs=IRR.filter(v=>rv.includes("v:"+v.v1));
+  return '<section class="card stack reviewc"><h3>👩 '+L("Mum checked you. Learn these again:")+'</h3><div class="chips">'+ws.map(w=>'<span>'+w.e+' '+esc(w.en)+'</span>').join("")+vs.map(v=>'<span>🔤 '+esc(v.v1+" – "+v.v2+" – "+v.v3)+'</span>').join("")+'</div>'+
+   '<div class="row">'+(ws.length?'<button class="btn primary" data-a="rvwords">🍎 '+L("Practise now")+'</button>':"")+(vs.length?'<button class="btn primary" data-a="rvverbs">🔤 '+L("Practise now")+'</button>':"")+'</div></section>';
+}
+function dropReview(key){if((SET.review||[]).includes(key))setShared({review:SET.review.filter(k=>k!==key)})}
+
 /* ---------------- render & events ---------------- */
 function render(){
   renderChrome();
@@ -1710,10 +1783,16 @@ document.addEventListener("click",e=>{
     if(n.type==="words"){VCAT=n.c;VSUB="pics";PQ=null;S.tab="verbs";saveState();render();scrollTo(0,0);return}
     if(n.type==="verbs"){S.level=n.lv;VSUB="fc";FC={deck:shuffle(packVerbs(n.lv,n.k)),i:0,flip:false,ok:0,pack:n};S.tab="verbs";saveState();render();scrollTo(0,0);return}
     S.level=n.lv;startPQ("tense");S.tab="practice";saveState();render();scrollTo(0,0);return}
+  if(a==="mcstart"){MC={type:v,items:momPool(v),i:0,show:false,res:[]};render();scrollTo(0,0);return}
+  if(a==="mcshow"){MC.show=true;render();say(MC.items[MC.i].speak);return}
+  if(a==="mcmark"){MC.res[MC.i]=v==="1";MC.i++;MC.show=false;if(MC.i>=MC.items.length)finishMomCheck();render();scrollTo(0,0);return}
+  if(a==="mcend"){MC=null;render();scrollTo(0,0);return}
+  if(a==="rvwords"){S.tab="verbs";VSUB="pics";VCAT="";startVocabQuiz("pic",VOCALL.filter(w=>(SET.review||[]).includes(w.k)));render();scrollTo(0,0);return}
+  if(a==="rvverbs"){const d=IRR.filter(x=>(SET.review||[]).includes("v:"+x.v1));if(!d.length)return;FC={deck:shuffle(d),i:0,flip:false,ok:0};S.tab="verbs";VSUB="fc";render();scrollTo(0,0);return}
   if(a==="mapfull"){S.mapFull=!S.mapFull;saveState();render();if(!S.mapFull){const c=$("#curnode");if(c&&c.scrollIntoView)c.scrollIntoView({block:"center"})}return}
   if(a==="vcat"){VCAT=v;VSUB="pics";if(PQ&&PQ.type==="vocab")PQ=null;S.tab="verbs";render();scrollTo(0,0);return}
   if(a==="vq"){startVocabQuiz(v);render();scrollTo(0,0);if(v==="listen")say(PQ.qs[0].w.en);return}
-  if(a==="vqa"){if(!PQ||PQ.ans!==null)return;PQ.ans=+v;const it=PQ.qs[PQ.i];if(PQ.ans===it.a){PQ.score++;if(!S.words)S.words=[];if(!S.words.includes(it.w.k)){S.words.push(it.w.k);saveState()}}say(it.w.en);render();return}
+  if(a==="vqa"){if(!PQ||PQ.ans!==null)return;PQ.ans=+v;const it=PQ.qs[PQ.i];if(PQ.ans===it.a){PQ.score++;dropReview(it.w.k);if(!S.words)S.words=[];if(!S.words.includes(it.w.k)){S.words.push(it.w.k);saveState()}}say(it.w.en);render();return}
   if(a==="vqn"){PQ.i++;PQ.ans=null;render();if(PQ.mode==="listen"&&PQ.i<PQ.qs.length)say(PQ.qs[PQ.i].w.en);return}
   if(a==="vqend"){PQ=null;render();return}
   if(a==="set"){startSet(v);S.tab="practice";render();scrollTo(0,0);return}
@@ -1739,7 +1818,7 @@ document.addEventListener("click",e=>{
   if(a==="vsub"){VSUB=v;render();return}
   if(a==="known"){e.stopPropagation();const i=S.verbs.indexOf(v);if(i<0)S.verbs.push(v);else S.verbs.splice(i,1);saveState();if(VSUB==="irr"&&S.tab==="verbs")render();return}
   if(a==="flip"){FC.flip=!FC.flip;if(FC.flip)say(say3(FC.deck[FC.i]));render();return}
-  if(a==="fc"){const x=FC.deck[FC.i];if(v==="1"){FC.ok++;if(!S.verbs.includes(x.v1)){S.verbs.push(x.v1);saveState()}}else FC.deck.push(x);FC.i++;FC.flip=false;render();return}
+  if(a==="fc"){const x=FC.deck[FC.i];if(v==="1"){FC.ok++;dropReview("v:"+x.v1);if(!S.verbs.includes(x.v1)){S.verbs.push(x.v1);saveState()}}else FC.deck.push(x);FC.i++;FC.flip=false;render();return}
   if(a==="fcnew"){newDeck();render();return}
   if(a==="pq"){startPQ(v);S.tab="practice";render();scrollTo(0,0);return}
   if(a==="pqend"){PQ=null;render();return}
