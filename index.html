@@ -883,12 +883,12 @@ function tenseMap(lv){
   return h+'</div>';
 }
 function vPlan(){
-  if(S.level==="ielts")return praiseBanner()+todayCard()+reviewCard()+vRoute()+vIelts();
+  if(S.level==="ielts")return todayCard()+reviewCard()+vRoute()+vIelts();
   const L0=LV[S.level],ids=L0.t,done=ids.filter(i=>S.tenses.includes(i)).length;
   const vset=S.level==="a1"?IRR.filter(v=>v.lv==="a1"):S.level==="a2"?IRR.filter(v=>v.lv==="a2"):IRR;
   const vk=vset.filter(v=>S.verbs.includes(v.v1)).length;
   const bestT=S.best["tense-"+S.level]||0;
-  let h=praiseBanner()+todayCard()+reviewCard()+vRoute();
+  let h=todayCard()+reviewCard()+vRoute();
   h+='<section class="card lvstrip"><div><span class="eyebrow">'+L("Your level")+'</span><b>'+L0.name+' · '+L0.cefr+'</b></div><div class="lvfacts"><span>📘 <b class="num">'+ids.length+'</b> '+L("topics")+'</span><span>🔤 <b class="num">'+L0.verbs+'</b> '+L("verbs")+'</span><span>🗂 <b class="num">'+L0.words+'</b> '+L("words")+'</span></div></section>';
   return h;
 }
@@ -1104,7 +1104,7 @@ Object.assign(UI,{
 });
 const ROUTE=(function(){const r=[],pk=(lv,k)=>({type:"verbs",lv:lv,k:k});
   const seq=(lv,a)=>a.forEach(x=>r.push(typeof x==="number"?pk(lv,x):x.slice(0,2)==="w:"?{type:"words",lv:lv,c:x.slice(2)}:{type:"tense",lv:lv,id:x}));
-  seq("a1",["tobe",0,"w:family","art1","plural","w:numbers","pron","ps",1,"w:food","poss","demo","w:colours","pc",2,"w:animals","thereis","pplace","w:home","past",3,"w:body","ptime","qwords","w:school","goingto",4]);r.push({type:"check",lv:"a1"});
+  seq("a1",["tobe",0,"w:family","art1","plural","w:numbers","pron","ps",1,"w:food","poss","demo","w:colours","pc",2,"w:animals","w:wild","thereis","pplace","w:home","w:kitchen","past",3,"w:body","ptime","w:time","qwords","w:school","w:toys","goingto",4]);r.push({type:"check",lv:"a1"});
   seq("a2",["pastc",0,"w:clothes","art2","compar","w:fruitveg","pp",1,"w:weather","quant","w:places","fs","pmove","w:directions",2,"w:transport","adverb","w:jobs","modals",3,"w:actions","w:sports",4,"w:feelings","w:nature"]);r.push({type:"check",lv:"a2"});
   seq("b1",["ppc","cond12","pastp","passive","usedto","fc","gerinf","relcl"]);r.push({type:"check",lv:"b1"});
   seq("b2",["pastpc","cond3","fp","reported","deduct","fpc","wish","phrasal"]);r.push({type:"check",lv:"b2"});
@@ -1686,7 +1686,11 @@ const VOC=[
  ["directions","🧭",["Directions","Yo'nalishlar","Направления"],[["up","⬆️","yuqoriga","вверх"],["down","⬇️","pastga","вниз"],["left","⬅️","chapga","налево"],["right","➡️","o'ngga","направо"],["around","🔄","atrofida","вокруг"],["back","↩️","orqaga","назад"],["near","📍","yaqin","близко"],["far","🔭","uzoq","далеко"]]],
  ["jobs","👷",["Jobs","Kasblar","Профессии"],[["doctor","🧑‍⚕️","shifokor","врач"],["police officer","👮","politsiyachi","полицейский"],["farmer","🧑‍🌾","fermer","фермер"],["chef","🧑‍🍳","oshpaz","повар"],["firefighter","🧑‍🚒","o't o'chiruvchi","пожарный"],["pilot","🧑‍✈️","uchuvchi","пилот"],["builder","👷","quruvchi","строитель"],["artist","🧑‍🎨","rassom","художник"],["singer","🧑‍🎤","qo'shiqchi","певец"],["scientist","🧑‍🔬","olim","учёный"],["mechanic","🧑‍🔧","mexanik","механик"],["driver","🚖","haydovchi","водитель"]]],
  ["sports","⚽",["Sports","Sport","Спорт"],[["football","⚽","futbol","футбол"],["basketball","🏀","basketbol","баскетбол"],["tennis","🎾","tennis","теннис"],["volleyball","🏐","voleybol","волейбол"],["boxing","🥊","boks","бокс"],["chess","♟️","shaxmat","шахматы"],["cycling","🚴","velosport","велоспорт"],["skiing","⛷️","chang'i","лыжи"],["wrestling","🤼","kurash","борьба"],["table tennis","🏓","stol tennisi","настольный теннис"]]],
- ["nature","🌳",["Nature","Tabiat","Природа"],[["tree","🌳","daraxt","дерево"],["flower","🌷","gul","цветок"],["mountain","⛰️","tog'","гора"],["sea","🌊","dengiz","море"],["forest","🌲","o'rmon","лес"],["grass","🌱","o't","трава"],["leaf","🍃","barg","лист"],["desert","🏜️","cho'l","пустыня"],["island","🏝️","orol","остров"],["volcano","🌋","vulqon","вулкан"],["stone","🪨","tosh","камень"]]]
+ ["nature","🌳",["Nature","Tabiat","Природа"],[["tree","🌳","daraxt","дерево"],["flower","🌷","gul","цветок"],["mountain","⛰️","tog'","гора"],["sea","🌊","dengiz","море"],["forest","🌲","o'rmon","лес"],["grass","🌱","o't","трава"],["leaf","🍃","barg","лист"],["desert","🏜️","cho'l","пустыня"],["island","🏝️","orol","остров"],["volcano","🌋","vulqon","вулкан"],["stone","🪨","tosh","камень"]]],
+ ["kitchen","🍳",["Kitchen","Oshxona","Кухня"],[["cup","☕","chashka","чашка"],["plate","🍽️","likopcha","тарелка"],["spoon","🥄","qoshiq","ложка"],["fork","🍴","vilka","вилка"],["knife","🔪","pichoq","нож"],["bowl","🥣","kosa","миска"],["pan","🍳","tova","сковорода"],["bottle","🍼","shisha","бутылка"],["salt","🧂","tuz","соль"],["honey","🍯","asal","мёд"],["cake","🍰","tort","торт"],["ice cream","🍦","muzqaymoq","мороженое"]]],
+ ["toys","🧸",["Toys & games","O'yinchoqlar","Игрушки"],[["teddy bear","🧸","ayiqcha","мишка"],["doll","🪆","qo'g'irchoq","кукла"],["kite","🪁","varrak","воздушный змей"],["balloon","🎈","shar","шарик"],["puzzle","🧩","boshqotirma","пазл"],["video game","🎮","video o'yin","видеоигра"],["robot","🤖","robot","робот"],["drum","🥁","baraban","барабан"],["guitar","🎸","gitara","гитара"],["gift","🎁","sovg'a","подарок"],["camera","📷","fotoapparat","фотоаппарат"],["ball","🏀","to'p","мяч"]]],
+ ["wild","🦁",["Wild & farm animals","Yovvoyi va uy hayvonlari","Дикие и домашние животные"],[["bear","🐻","ayiq","медведь"],["tiger","🐯","yo'lbars","тигр"],["giraffe","🦒","jirafa","жираф"],["camel","🐫","tuya","верблюд"],["snake","🐍","ilon","змея"],["frog","🐸","qurbaqa","лягушка"],["duck","🦆","o'rdak","утка"],["bee","🐝","ari","пчела"],["butterfly","🦋","kapalak","бабочка"],["turtle","🐢","toshbaqa","черепаха"],["goat","🐐","echki","коза"],["mouse","🐭","sichqon","мышь"]]],
+ ["time","🕐",["Day & time","Kun va vaqt","День и время"],[["morning","🌅","ertalab","утро"],["evening","🌆","kechqurun","вечер"],["night","🌃","tun","ночь"],["day","🏙️","kun","день"],["week","📅","hafta","неделя"],["birthday","🎂","tug'ilgan kun","день рождения"],["holiday","🏖️","ta'til","каникулы"],["watch","⌚","qo'l soati","наручные часы"]]]
 ];
 const VOCALL=[];VOC.forEach(c=>c[3].forEach(w=>VOCALL.push({k:c[0]+":"+w[0],c:c[0],en:w[0],e:w[1],uz:w[2],ru:w[3]})));
 const vcat=id=>VOC.find(c=>c[0]===id);
@@ -1822,9 +1826,6 @@ function parentTop(){
   h+='<section class="card stack"><div class="row between"><h3>'+L("This week")+'</h3><span class="small muted">'+L("Goal met on {k} of {n} days",{k:met,n:wd+1})+'</span></div><div class="wstrip">'+cells+'</div></section>';
   const klv=(S.last||0)>=LASTSEEN?S.level:(KIDLV||S.level),part=ROUTE.slice(routeStart(klv)),pct=Math.round(part.filter(nodeDone).length/part.length*100);
   h+='<div class="ptiles">'+[["🔥",streak(),L("days in a row")],["⏱",fmt(weekSec()),L("this week")],["🗂",(S.words||[]).length,L("words learned")],["📈",pct+"%",L("level progress")]].map(x=>'<div class="ptile"><span class="pe">'+x[0]+'</span><b class="num">'+x[1]+'</b><small>'+x[2]+'</small></div>').join("")+'</div>';
-  const m=SET.msg;
-  h+='<section class="card stack praise"><h3>'+L("Encourage him")+'</h3><p class="small muted">'+L("One tap sends a message to his app.")+'</p><div class="pbtns">'+PRAISE.map((x,i)=>'<button data-a="praise" data-v="'+i+'"><span>'+x[0]+'</span>'+esc(L(x[1]))+'</button>').join("")+'</div>'+
-    (m?'<p class="small muted">'+L("Sent: {m}",{m:m.e+" "+esc(L(m.k))})+' · '+whenTxt(m.ts)+'</p>':"")+'</section>';
   return h;
 }
 function praiseBanner(){
