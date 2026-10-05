@@ -307,6 +307,14 @@ tr:last-child td{border-bottom:0}
 .pdet[open] summary{margin-bottom:12px}
 .msgc{display:flex;gap:14px;align-items:center;border:2px solid var(--hl);background:var(--surface)}
 .msge{font-size:3rem;line-height:1}
+.vtrq{text-align:center;font-size:1.4rem;font-weight:700;margin:0;color:var(--accent)}
+.vopt{display:flex;flex-direction:column;align-items:center;gap:4px}
+.vopt small{font-size:.9rem;font-weight:600;color:var(--muted)}
+.vopt.right small,.vopt.wrong small{color:var(--surface)}
+.vsteps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:8px}
+.vlcard{display:flex;flex-direction:column;align-items:center;gap:6px;padding:20px;border:2px solid var(--line);border-radius:20px;background:var(--surface);color:var(--ink);width:100%}
+.vlen{font-size:2.2rem;letter-spacing:-.01em}
+.vltr{font-size:1.4rem;font-weight:700;color:var(--accent)}
 .maptoggle{display:flex;justify-content:center;padding-top:8px}
 .vcats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
 .vcat{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 10px;border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink)}
@@ -935,7 +943,7 @@ function closeSheet(){$("#sheet").hidden=true;$("#sheetIn").innerHTML=""}
 let VSUB="pics",VQ="",FC=null,VF="all",VSEL="";
 const say3=v=>v.v1+", "+v.v2.replace(" / ",", ")+", "+v.v3.replace(" / ",", ");
 function vVerbs(){
-  let h='<section class="stack"><div><h2>'+L("Verbs")+'</h2><p class="muted small">'+L("V1 = base form · V2 = past simple · V3 = past participle (for perfect tenses).")+'</p></div><div class="sub">'+
+  let h='<section class="stack"><div><h2>'+(VSUB==="pics"?L("Words"):L("Verbs"))+'</h2>'+(VSUB==="pics"?"":'<p class="muted small">'+L("V1 = base form · V2 = past simple · V3 = past participle (for perfect tenses).")+'</p>')+'</div><div class="sub">'+
    [["pics","Picture words"],["irr","Irregular verbs"],["reg","Regular verbs"],["fc","Flashcards"]].map(s=>'<button data-a="vsub" data-v="'+s[0]+'" aria-pressed="'+(VSUB===s[0])+'">'+L(s[1])+'</button>').join("")+'</div></section>';
   if(VSUB==="irr"){
     const list=levelVerbs(S.level),k=list.filter(v=>S.verbs.includes(v.v1)).length;
@@ -947,7 +955,7 @@ function vVerbs(){
      [["Most verbs: + ed","work → worked, play → played"],["Ends in e: + d","like → liked, dance → danced"],["Consonant + y: y → ied","study → studied, try → tried"],["Short verb, 1 vowel + 1 consonant: double it","stop → stopped, plan → planned"]].map(r=>'<div class="note"><b>'+L(r[0])+'</b><div class="small">'+r[1]+'</div></div>').join("")+
      '</div><h3>'+L("How to say -ed")+'</h3><div class="grid g3"><div class="note"><span class="snd">/t/</span> '+L("after p, k, s, sh, ch, f")+'<div class="small">walked, watched, stopped</div></div><div class="note"><span class="snd">/d/</span> '+L("after other sounds")+'<div class="small">played, cleaned, lived</div></div><div class="note"><span class="snd">/ɪd/</span> '+L("after t and d")+'<div class="small">wanted, needed, visited</div></div></div></section>'+
      '<div class="tbl-wrap"><table><thead><tr><th>'+L("Verb")+'</th><th>'+L("Past (V2 = V3)")+'</th>'+(S.lang==="en"?"":'<th>'+L("Meaning")+'</th>')+'<th>'+L("Sound")+'</th><th></th></tr></thead><tbody>'+REG.map(v=>'<tr><td class="v1">'+v.v1+'</td><td>'+v.v2+'</td>'+(S.lang==="en"?"":'<td class="mn">'+esc(mean(v))+'</td>')+'<td><span class="snd">/'+(v.snd==="id"?"ɪd":v.snd)+'/</span></td><td>'+sayBtn(v.v1+", "+v.v2)+'</td></tr>').join("")+'</tbody></table></div>';
-  }else if(VSUB==="pics")h+=(PQ&&PQ.type==="vocab")?vVocabQuiz():vVocab();
+  }else if(VSUB==="pics")h+=(PQ&&PQ.type==="vocab")?vVocabQuiz():(PQ&&PQ.type==="vlearn")?vVocabLearn():vVocab();
   else h+=vFlash();
   return h;
 }
@@ -983,7 +991,7 @@ function startPQ(type,custom){
 function vPractice(){
   const lv=S.level,bt=S.best["tense-"+lv]||0,bv=S.best["verb-"+lv]||0;
   if(!PQ)return vPracticeHome();
-  if(PQ.type==="vocab")return vPracticeHome();
+  if(PQ.type==="vocab"||PQ.type==="vlearn")return vPracticeHome();
   if(PQ.type==="set")return vSet();
   if(PQ.type==="write")return vWrite();
   if(PQ.i>=PQ.qs.length){
@@ -1695,7 +1703,7 @@ const VOC=[
 const VOCALL=[];VOC.forEach(c=>c[3].forEach(w=>VOCALL.push({k:c[0]+":"+w[0],c:c[0],en:w[0],e:w[1],uz:w[2],ru:w[3]})));
 const vcat=id=>VOC.find(c=>c[0]===id);
 const vname=c=>c[2][S.lang==="uz"?1:S.lang==="ru"?2:0];
-const vtr=w=>S.lang==="uz"?w.uz:S.lang==="ru"?w.ru:"";
+const vtr=w=>S.lang==="ru"?w.ru:w.uz;
 let VCAT="";
 function vVocab(){
   if(!S.words)S.words=[];
@@ -1705,9 +1713,11 @@ function vVocab(){
   }
   const c=vcat(VCAT),ws=VOCALL.filter(w=>w.c===VCAT);
   return '<section class="stack"><div class="row between"><button class="btn sm" data-a="vcat" data-v="">← '+L("Back to topics")+'</button><h2>'+c[1]+' '+esc(vname(c))+'</h2></div>'+
-   '<div class="grid g2"><button class="btn primary" data-a="vq" data-v="pic">'+L("Picture quiz")+'</button><button class="btn" data-a="vq" data-v="listen">🔊 '+L("Listen and choose")+'</button></div>'+
+   (function(){const seen=(S.vseen||{})[VCAT];return '<div class="vsteps"><button class="btn primary big" data-a="vlearn">1️⃣ '+L("Learn the words")+'</button>'+
+     '<button class="btn big'+(seen?" primary":"")+'" data-a="vq" data-v="pic"'+(seen?"":" disabled")+'>2️⃣ '+L("Picture quiz")+'</button><button class="btn big'+(seen?" primary":"")+'" data-a="vq" data-v="listen"'+(seen?"":" disabled")+'>3️⃣ 🔊 '+L("Listen and choose")+'</button></div>'+
+     (seen?"":'<p class="note small">'+L("Learn first, then take the test.")+'</p>')})()+
    '<p class="small muted">'+L("Tap a picture to hear the word.")+'</p><div class="vgrid">'+ws.map(w=>{const on=S.words.includes(w.k);
-     return '<button class="vcard'+(on?" on":"")+'" data-a="say" data-v="'+esc(w.en)+'"><span class="vemo">'+w.e+'</span><b>'+esc(w.en)+'</b>'+(S.lang!=="en"?'<span class="small muted">'+esc(vtr(w))+'</span>':"")+(on?'<span class="vok">✓</span>':"")+'</button>'}).join("")+'</div></section>';
+     return '<button class="vcard'+(on?" on":"")+'" data-a="say" data-v="'+esc(w.en)+'"><span class="vemo">'+w.e+'</span><b>'+esc(w.en)+'</b><span class="small muted">'+esc(vtr(w))+'</span>'+(on?'<span class="vok">✓</span>':"")+'</button>'}).join("")+'</div></section>';
 }
 function startVocabQuiz(mode,list){
   const pool=list&&list.length?list:VOCALL.filter(w=>w.c===VCAT),others=VOCALL.filter(w=>!pool.includes(w));
@@ -1720,11 +1730,11 @@ function vVocabQuiz(){
   const it=PQ.qs[PQ.i];
   let h='<section class="card stack"><div class="row between"><span class="small muted num">'+L("Question {i} of {n}",{i:PQ.i+1,n:N})+'</span><button class="btn sm" data-a="vqend">×</button></div><div class="bar"><i style="width:'+(PQ.i/N*100)+'%"></i></div>';
   if(PQ.mode==="pic"){
-    h+='<p class="small muted">'+L("Which word is this?")+'</p><div class="vbig">'+it.w.e+'</div><div class="opts">'+it.o.map((w,j)=>{let c="";if(PQ.ans!==null){if(j===it.a)c="right";else if(j===PQ.ans)c="wrong"}return '<button class="'+c+'" data-a="vqa" data-v="'+j+'"'+(PQ.ans!==null?" disabled":"")+'>'+esc(w.en)+'</button>'}).join("")+'</div>';
+    h+='<p class="small muted">'+L("Which word is this?")+'</p><div class="vbig">'+it.w.e+'</div><p class="vtrq">'+esc(vtr(it.w))+'</p><div class="opts">'+it.o.map((w,j)=>{let c="";if(PQ.ans!==null){if(j===it.a)c="right";else if(j===PQ.ans)c="wrong"}return '<button class="'+c+'" data-a="vqa" data-v="'+j+'"'+(PQ.ans!==null?" disabled":"")+'>'+esc(w.en)+'</button>'}).join("")+'</div>';
   }else{
-    h+='<p class="small muted">'+L("Listen. Which picture is it?")+'</p><div><button class="btn" data-a="say" data-v="'+esc(it.w.en)+'">🔊 '+L("Play again")+'</button></div><div class="vopts">'+it.o.map((w,j)=>{let c="";if(PQ.ans!==null){if(j===it.a)c="right";else if(j===PQ.ans)c="wrong"}return '<button class="vopt '+c+'" data-a="vqa" data-v="'+j+'"'+(PQ.ans!==null?" disabled":"")+'>'+w.e+'</button>'}).join("")+'</div>';
+    h+='<p class="small muted">'+L("Listen. Which picture is it?")+'</p><div><button class="btn" data-a="say" data-v="'+esc(it.w.en)+'">🔊 '+L("Play again")+'</button></div><div class="vopts">'+it.o.map((w,j)=>{let c="";if(PQ.ans!==null){if(j===it.a)c="right";else if(j===PQ.ans)c="wrong"}return '<button class="vopt '+c+'" data-a="vqa" data-v="'+j+'"'+(PQ.ans!==null?" disabled":"")+'>'+w.e+'<small>'+esc(vtr(w))+'</small></button>'}).join("")+'</div>';
   }
-  if(PQ.ans!==null)h+='<p class="fb '+(PQ.ans===it.a?"ok":"no")+'">'+(PQ.ans===it.a?L("Correct!"):L("The answer is “{x}”.",{x:esc(it.w.en)}))+' '+it.w.e+' <b>'+esc(it.w.en)+'</b>'+(S.lang!=="en"?' — '+esc(vtr(it.w)):"")+'</p><div><button class="btn primary" data-a="vqn">'+(PQ.i===N-1?L("See result"):L("Next question"))+'</button></div>';
+  if(PQ.ans!==null)h+='<p class="fb '+(PQ.ans===it.a?"ok":"no")+'">'+(PQ.ans===it.a?L("Correct!"):L("The answer is “{x}”.",{x:esc(it.w.en)}))+' '+it.w.e+' <b>'+esc(it.w.en)+'</b> — '+esc(vtr(it.w))+'</p><div><button class="btn primary" data-a="vqn">'+(PQ.i===N-1?L("See result"):L("Next question"))+'</button></div>';
   return h+'</section>';
 }
 
@@ -1833,6 +1843,14 @@ function praiseBanner(){
   return '<section class="card msgc"><span class="msge">'+m.e+'</span><div style="flex:1;min-width:0"><span class="eyebrow">💌 '+L("Message from Mum")+'</span><h2>'+esc(L(m.k))+'</h2></div><button class="x" data-a="msgok" aria-label="OK">✓</button></section>';
 }
 
+Object.assign(UI,{"Learn the words":["So'zlarni o'rganish","Учить слова"],"Learn first, then take the test.":["Avval so'zlarni o'rganing, keyin testlar ochiladi.","Сначала выучите слова — потом откроются тесты."],
+"Next":["Keyingi","Дальше"],"Back":["Oldingi","Назад"],"Ready! Start the test":["Tayyor! Testni boshlash","Готово! Начать тест"],"Word {i} of {n}":["So'z {i} / {n}","Слово {i} из {n}"]});
+function vVocabLearn(){
+  const w=PQ.list[PQ.i],N=PQ.list.length,last=PQ.i===N-1;
+  return '<section class="card stack vlearn"><div class="row between"><span class="small muted num">'+L("Word {i} of {n}",{i:PQ.i+1,n:N})+'</span><button class="btn sm" data-a="vqend">×</button></div><div class="bar"><i style="width:'+((PQ.i+1)/N*100)+'%"></i></div>'+
+   '<button class="vlcard" data-a="say" data-v="'+esc(w.en)+'"><span class="vbig">'+w.e+'</span><b class="vlen">'+esc(w.en)+'</b><span class="vltr">'+esc(vtr(w))+'</span><span class="small muted">🔊</span></button>'+
+   '<div class="grid g2"><button class="btn big" data-a="vlp"'+(PQ.i?"":" disabled")+'>← '+L("Back")+'</button>'+(last?'<button class="btn primary big" data-a="vldone">✓ '+L("Ready! Start the test")+'</button>':'<button class="btn primary big" data-a="vln">'+L("Next")+' →</button>')+'</div></section>';
+}
 /* ---------------- render & events ---------------- */
 function render(){
   renderChrome();
@@ -1870,6 +1888,10 @@ document.addEventListener("click",e=>{
   if(a==="vqa"){if(!PQ||PQ.ans!==null)return;PQ.ans=+v;const it=PQ.qs[PQ.i];if(PQ.ans===it.a){PQ.score++;dropReview(it.w.k);if(!S.words)S.words=[];if(!S.words.includes(it.w.k)){S.words.push(it.w.k);act("w")}}say(it.w.en);render();return}
   if(a==="vqn"){PQ.i++;PQ.ans=null;if(PQ.i>=PQ.qs.length)act("t");render();if(PQ.mode==="listen"&&PQ.i<PQ.qs.length)say(PQ.qs[PQ.i].w.en);return}
   if(a==="vqend"){PQ=null;render();return}
+  if(a==="vlearn"){PQ={type:"vlearn",cat:VCAT,list:VOCALL.filter(w=>w.c===VCAT),i:0};render();scrollTo(0,0);say(PQ.list[0].en);return}
+  if(a==="vln"){PQ.i=Math.min(PQ.list.length-1,PQ.i+1);render();say(PQ.list[PQ.i].en);return}
+  if(a==="vlp"){PQ.i=Math.max(0,PQ.i-1);render();say(PQ.list[PQ.i].en);return}
+  if(a==="vldone"){if(!S.vseen)S.vseen={};S.vseen[PQ.cat]=1;act("l");saveState();startVocabQuiz("pic");render();scrollTo(0,0);return}
   if(a==="set"){startSet(v);S.tab="practice";render();scrollTo(0,0);return}
   if(a==="sa"){if(!PQ||PQ.ans!==null)return;PQ.ans=+v;if(PQ.ans===PQ.qs[PQ.i].a)PQ.score++;render();return}
   if(a==="spick"){if(PQ.ans!==null)return;const w=+v;if(!PQ.pick.includes(w))PQ.pick.push(w);render();return}
