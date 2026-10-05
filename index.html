@@ -265,6 +265,7 @@ tr:last-child td{border-bottom:0}
 @media (max-width:420px){.tabs button{font-size:.6rem}.tabs svg{width:18px;height:18px}}
 .soon{align-items:flex-start;text-align:left;padding-block:28px}
 .soon-badge{background:var(--hl);color:var(--hl-ink);font-weight:700;font-size:.85rem;padding:5px 12px;border-radius:99px}
+.maptoggle{display:flex;justify-content:center;padding-top:8px}
 .vcats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
 .vcat{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 10px;border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink)}
 .vcat .bar{width:100%;height:6px}
@@ -1096,13 +1097,15 @@ function vRoute(){
    '<p class="note small">'+L("Not sure about the level? Take the checkpoint test. 8 of 10 or more means this level is already known, so choose the next one.")+'</p>'+
    '<div class="bar"><i style="width:'+pct+'%"></i></div><p class="small muted">'+L("{d} of {n} steps done",{d:done,n:part.length})+'</p><div class="route">';
   let lv="";
-  part.forEach((n,k)=>{const i=st+k;
+  const lo=Math.max(st,cur-2),hi=cur+5,full=!!S.mapFull;
+  part.forEach((n,k)=>{const i=st+k;if(!full&&(i<lo||i>hi))return;
     if(n.lv!==lv){lv=n.lv;h+='<div class="unit"><span>'+LV[lv].cefr+' · '+LV[lv].name+'</span></div>'}
     const d=nodeDone(n),isCur=i===cur,lock=!d&&i>cur&&n.type!=="check",t=nodeTitle(n),x=Math.round(Math.sin(k*1.05)*48);
     h+='<button class="node '+n.type+(d?" done":isCur?" cur":lock?" lock":"")+'"'+(isCur?' id="curnode"':"")+' data-a="node" data-v="'+i+'" style="transform:translateX('+x+'px)">'+
       (isCur?'<span class="start-tag">'+L("Start here")+'</span>':"")+'<span class="c">'+ico(d?"done":lock?"lock":n.type)+'</span><b>'+esc(t[0])+'</b><small>'+esc(t[1])+'</small></button>';
   });
-  h+='<div class="finish"><span class="c">IELTS</span><small class="muted">'+L("Finish line: ready for IELTS")+'</small></div></div></section>';
+  if(full||hi>=ROUTE.length-1)h+='<div class="finish"><span class="c">IELTS</span><small class="muted">'+L("Finish line: ready for IELTS")+'</small></div>';
+  h+='</div><div class="maptoggle"><button class="btn" data-a="mapfull">'+(full?"▲ "+L("Shorten the map"):"▼ "+L("Show the full map")+' <span class="num">('+part.length+')</span>')+'</button></div></section>';
   return h;
 }
 
@@ -1600,6 +1603,7 @@ Object.assign(VID,{
 
 /* ---------------- picture vocabulary (beginner) ---------------- */
 Object.assign(UI,{
+"Show the full map":["To'liq xaritani ko'rsatish","Показать всю карту"],"Shorten the map":["Xaritani qisqartirish","Свернуть карту"],
 "Saved online":["Internetga saqlandi","Сохранено онлайн"],"Could not save. Check the internet connection.":["Saqlab bo'lmadi. Internetni tekshiring.","Не удалось сохранить. Проверьте интернет."],
 "Words":["So'zlar","Слова"],"Picture words":["Rasmli so'zlar","Слова в картинках"],"Words learned":["Yodlangan so'zlar","Выучено слов"],
 "Tap a picture to hear the word.":["So'zni eshitish uchun rasmni bosing.","Нажмите на картинку, чтобы услышать слово."],
@@ -1689,6 +1693,7 @@ document.addEventListener("click",e=>{
     if(n.type==="words"){VCAT=n.c;VSUB="pics";PQ=null;S.tab="verbs";saveState();render();scrollTo(0,0);return}
     if(n.type==="verbs"){S.level=n.lv;VSUB="fc";FC={deck:shuffle(packVerbs(n.lv,n.k)),i:0,flip:false,ok:0,pack:n};S.tab="verbs";saveState();render();scrollTo(0,0);return}
     S.level=n.lv;startPQ("tense");S.tab="practice";saveState();render();scrollTo(0,0);return}
+  if(a==="mapfull"){S.mapFull=!S.mapFull;saveState();render();if(!S.mapFull){const c=$("#curnode");if(c&&c.scrollIntoView)c.scrollIntoView({block:"center"})}return}
   if(a==="vcat"){VCAT=v;VSUB="pics";if(PQ&&PQ.type==="vocab")PQ=null;S.tab="verbs";render();scrollTo(0,0);return}
   if(a==="vq"){startVocabQuiz(v);render();scrollTo(0,0);if(v==="listen")say(PQ.qs[0].w.en);return}
   if(a==="vqa"){if(!PQ||PQ.ans!==null)return;PQ.ans=+v;const it=PQ.qs[PQ.i];if(PQ.ans===it.a){PQ.score++;if(!S.words)S.words=[];if(!S.words.includes(it.w.k)){S.words.push(it.w.k);saveState()}}say(it.w.en);render();return}
