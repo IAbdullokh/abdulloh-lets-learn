@@ -281,6 +281,32 @@ tr:last-child td{border-bottom:0}
 .btn.mcyes{background:var(--good);border-color:var(--good);color:var(--surface);min-height:56px;justify-content:center;font-size:1.1rem}
 .btn.mcno{background:var(--bad);border-color:var(--bad);color:var(--surface);min-height:56px;justify-content:center;font-size:1.1rem}
 .reviewc{border:2px solid var(--past)}
+.phero{display:flex;gap:16px;align-items:center;border-width:2px}
+.phero.ok{border-color:var(--good)}.phero.mid{border-color:var(--hl)}.phero.no{border-color:var(--line)}
+.pface{font-size:3.6rem;line-height:1}
+.pbig{font-size:2.6rem;line-height:1}
+.pacts{display:flex;flex-wrap:wrap;gap:8px}
+.pacts span{background:var(--surface2);border-radius:12px;padding:8px 12px;font-weight:600}
+.wstrip{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center}
+.wday{display:flex;flex-direction:column;align-items:center;gap:4px}
+.wdot{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-weight:700;background:var(--surface2);color:var(--muted);max-width:100%}
+.wday.ok .wdot{background:var(--good);color:var(--surface)}
+.wday.mid .wdot{background:var(--hl);color:var(--hl-ink)}
+.wday.fut .wdot{background:transparent;border:2px dashed var(--line)}
+.wday.today small{font-weight:700;color:var(--ink)}
+.wday small{font-size:.72rem;color:var(--muted)}
+.ptiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media (min-width:640px){.ptiles{grid-template-columns:repeat(4,1fr)}}
+.ptile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:2px}
+.ptile .pe{font-size:1.6rem}.ptile b{font-size:1.5rem}.ptile small{color:var(--muted)}
+.praise{border:2px solid var(--future)}
+.pbtns{display:flex;flex-wrap:wrap;gap:8px}
+.pbtns button{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface2);border-radius:99px;padding:10px 14px;font-weight:600;min-height:46px}
+.pbtns button span{font-size:1.3rem}
+.pdet summary{cursor:pointer;font-weight:600;font-size:1.05rem}
+.pdet[open] summary{margin-bottom:12px}
+.msgc{display:flex;gap:14px;align-items:center;border:2px solid var(--hl);background:var(--surface)}
+.msge{font-size:3rem;line-height:1}
 .maptoggle{display:flex;justify-content:center;padding-top:8px}
 .vcats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
 .vcat{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 10px;border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink)}
@@ -545,7 +571,7 @@ function saveState(){S.upd=Date.now();LS.set("elb.state",S);clearTimeout(saveT);
 let PARENT=false,PIN_OK=false,SET={},LASTSEEN=0,KIDLV="";
 try{if((location.hash==="#parent"&&!window.ELB_KID)||window.ELB_PARENT)PARENT=true}catch(e){}
 /* optional Firebase (own website): one family document tree, shared by the child and the parent */
-const FB=window.ELB_FB&&window.ELB_FB.projectId&&!/nosync/.test(location.search||"")?window.ELB_FB:null;
+const FB=window.ELB_FB&&window.ELB_FB.projectId&&!/nosync/.test(location.search||"")&&!/^(localhost|127\.0\.0\.1)$/.test(location.hostname||"")?window.ELB_FB:null;
 function fbUrl(p){return "https://firestore.googleapis.com/v1/projects/"+FB.projectId+"/databases/(default)/documents/families/"+FB.fam+"/"+p+(FB.apiKey?"?key="+FB.apiKey:"")}
 function fbSet(p,data){return fetch(fbUrl(p),{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({fields:{json:{stringValue:JSON.stringify(data)}}})}).then(r=>{if(!r.ok)throw new Error("save "+r.status)})}
 function fbGet(p,coll){const u=fbUrl(p);return fetch(u+(coll?(u.indexOf("?")<0?"?":"&")+"pageSize=300":"")).then(r=>r.ok?r.json():null)}
@@ -556,7 +582,8 @@ let remoteDirty=false,lastRemote=0;
 function roundDays(){const days={};for(const k in TIME.days)days[k]=Math.round(TIME.days[k]);return days}
 function pushTime(){if(!DBX)return;write(DBX.base+"/t-"+DEV,{kind:"time",days:roundDays(),upd:Date.now()});pushReport();remoteDirty=false;lastRemote=Date.now()}
 /* shared report: one per device, so a parent on another account can see progress */
-function pushReport(){if(!DBX||PARENT)return;write("reports/"+DEV,{kind:"report",days:roundDays(),vid:VIDT,words:S.words||[],tenses:S.tenses,verbs:S.verbs,best:S.best,level:S.level,last:S.last||0,upd:Date.now()})}
+function hasActivity(){let t=0;for(const k in TIME.days)t+=TIME.days[k];return t>=30||(S.tenses||[]).length||(S.words||[]).length||(S.verbs||[]).length||Object.keys(S.best||{}).length||Object.keys(VIDT).length}
+function pushReport(){if(!DBX||PARENT||!hasActivity())return;write("reports/"+DEV,{kind:"report",days:roundDays(),vid:VIDT,act:S.act||{},words:S.words||[],tenses:S.tenses,verbs:S.verbs,best:S.best,level:S.level,last:S.last||0,upd:Date.now()})}
 function mergeDays(dev,days){if(!days||dev===DEV)return;const o=OTHERS[dev]||(OTHERS[dev]={});for(const k in days)o[k]=Math.max(o[k]||0,days[k]||0)}
 function mergeProg(x){
   S.tenses=[...new Set([...(S.tenses||[]),...(x.tenses||[])])];
@@ -585,7 +612,7 @@ SET=LS.get("elb.set",{});if(SET.goal)S.goal=SET.goal;
       }});
     DBX={db:db,base:base};SYNC="synced";LS.set("elb.state",S);LS.set("elb.days",TIME.days);
     db.doc("settings/main").onSnapshot(sn=>{const x=sn.exists?sn.data():null;if(!x)return;SET=Object.assign({},x);LS.set("elb.set",SET);if(SET.goal)S.goal=SET.goal;render()},()=>{});
-    db.collection("reports").onSnapshot(sn=>{sn.docs.forEach(d=>{if(d.id===DEV)return;const x=d.data()||{};mergeDays(d.id,x.days);if(x.vid)OTHV[d.id]=x.vid;mergeProg(x)});if(PARENT)render()},()=>{});
+    db.collection("reports").onSnapshot(sn=>{sn.docs.forEach(d=>{if(d.id===DEV)return;const x=d.data()||{};mergeDays(d.id,x.days);if(x.vid)OTHV[d.id]=x.vid;if(x.act)OTHA[d.id]=x.act;mergeProg(x)});if(PARENT)render()},()=>{});
     if(!PARENT){pushProgress();pushTime()}
     render();
   }catch(e){}
@@ -596,12 +623,12 @@ async function fbLoad(first){
     const j=await fbGet("reports",true);
     ((j&&j.documents)||[]).forEach(d=>{const id=d.name.split("/").pop();let x;try{x=JSON.parse(d.fields.json.stringValue)}catch(e){return}
       if(id===DEV){const days=x.days||{};for(const k in days)TIME.days[k]=Math.max(TIME.days[k]||0,days[k]);const v=x.vid||{};for(const k in v)VIDT[k]=Math.max(VIDT[k]||0,v[k]);mergeProg(x);return}
-      mergeDays(id,x.days);if(x.vid)OTHV[id]=x.vid;mergeProg(x)});
+      mergeDays(id,x.days);if(x.vid)OTHV[id]=x.vid;if(x.act)OTHA[id]=x.act;mergeProg(x)});
     const sj=await fbGet("settings/main");
     if(sj&&sj.fields){try{SET=Object.assign({},JSON.parse(sj.fields.json.stringValue));LS.set("elb.set",SET);if(SET.goal)S.goal=SET.goal}catch(e){}}
     DBX=DBX||{fb:true};SYNC="synced";LS.set("elb.state",S);LS.set("elb.days",TIME.days);LS.set("elb.vid",VIDT);
     if(first&&!PARENT)pushReport();
-    if(first||PARENT)render();
+    if(first||PARENT)render();else if(SET.msg&&SET.msg.ts>LS.get("elb.msgseen",0)&&S.tab==="plan"&&!PQ)render();
   }catch(e){if(!DBX)DBX={fb:true}}
 }
 if(FB){fbLoad(true);setInterval(()=>{if(document.visibilityState==="visible")fbLoad(false)},PARENT?20000:120000)}
@@ -856,12 +883,12 @@ function tenseMap(lv){
   return h+'</div>';
 }
 function vPlan(){
-  if(S.level==="ielts")return todayCard()+reviewCard()+vRoute()+vIelts();
+  if(S.level==="ielts")return praiseBanner()+todayCard()+reviewCard()+vRoute()+vIelts();
   const L0=LV[S.level],ids=L0.t,done=ids.filter(i=>S.tenses.includes(i)).length;
   const vset=S.level==="a1"?IRR.filter(v=>v.lv==="a1"):S.level==="a2"?IRR.filter(v=>v.lv==="a2"):IRR;
   const vk=vset.filter(v=>S.verbs.includes(v.v1)).length;
   const bestT=S.best["tense-"+S.level]||0;
-  let h=todayCard()+reviewCard()+vRoute();
+  let h=praiseBanner()+todayCard()+reviewCard()+vRoute();
   h+='<section class="card lvstrip"><div><span class="eyebrow">'+L("Your level")+'</span><b>'+L0.name+' · '+L0.cefr+'</b></div><div class="lvfacts"><span>📘 <b class="num">'+ids.length+'</b> '+L("topics")+'</span><span>🔤 <b class="num">'+L0.verbs+'</b> '+L("verbs")+'</span><span>🗂 <b class="num">'+L0.words+'</b> '+L("words")+'</span></div></section>';
   return h;
 }
@@ -1131,14 +1158,11 @@ function whenTxt(t){if(!t)return L("never");const d=new Date(t),hm=String(d.getH
 function vParent(){
   if(!SET.pin&&!PIN_OK)return '<section class="card stack" style="max-width:420px;margin:30px auto;width:100%"><h2>'+L("Create a PIN")+'</h2><p class="muted small">'+L("Create a 4-digit PIN for this page. Only you will know it.")+'</p><form class="pin" id="setpin"><input id="newpin" type="password" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="PIN"><button class="btn primary" type="submit">'+L("Save PIN")+'</button></form></section>';
   if(SET.pin&&!PIN_OK)return '<section class="card stack" style="max-width:420px;margin:30px auto;width:100%"><h2>'+L("Parent dashboard")+'</h2><p class="muted small">'+L("Enter PIN")+'</p><form class="pin" id="pinform"><input id="pinin" type="password" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="PIN"><button class="btn primary" type="submit">'+L("Open")+'</button></form></section>';
-  if(MC)return vMomCheck();
   const klv=(S.last||0)>=LASTSEEN?S.level:(KIDLV||S.level),st=routeStart(klv),part=ROUTE.slice(st),today=dayTotal(dk()),studied=today>=60,cur=curIdx(klv),cn=ROUTE[cur],done=part.filter(nodeDone).length,pct=Math.round(done/part.length*100);
   const vk=IRR.filter(v=>S.verbs.includes(v.v1)).length,allT=Object.keys(T),tk=allT.filter(id=>S.tenses.includes(id)).length;
   const last=Math.max(S.last||0,LASTSEEN);
-  let h='<section class="stack"><div class="row between"><h1>'+L("Parent dashboard")+'</h1><span class="tag">'+(SYNC==="synced"?L("Data from all devices, updated live."):L("Only this device's data. Cloud sync is not connected."))+'</span></div></section>';
-  h+='<section class="card stack"><div class="row between"><span class="pill '+(studied?"ok":"no")+'">'+(studied?"✓ "+L("Studied today"):"✗ "+L("Not yet today"))+'</span><span class="small muted">'+L("Last active: {t}",{t:whenTxt(last)})+'</span></div>'+
-   '<div class="row" style="align-items:baseline"><b style="font-size:2.2rem" class="num">'+fmt(today)+'</b><span class="muted">'+L("of {n} min",{n:S.goal})+'</span></div><div class="bar"><i style="width:'+Math.min(100,today/(S.goal*60)*100)+'%"></i></div></section>';
-  h+=momCheckCard();
+  let h=parentTop();
+  h+='<details class="card pdet"><summary>'+L("Details")+'</summary><div class="stack">';
   h+='<div class="kpis">'+[[fmt(weekSec()),L("this week (Mon–Sun)")],[fmt(monthSec()),L("this month")],[fmt(totalSec()),L("total")],[L("{n} days",{n:streak()}),L("streak")],[(S.words||[]).length+" / "+VOCALL.length,L("Words learned in quizzes")],[vk+" / "+IRR.length,L("Verbs learned")],[fmt(sum7v()),L("Videos (he added himself)")+" · 7d"],[tk+" / "+allT.length,L("Tenses learned")]].map(k=>'<div class="kpi"><b class="num">'+k[0]+'</b><span>'+k[1]+'</span></div>').join("")+'</div>';
   h+='<section class="card stack"><div class="row between"><h3>'+L("Route progress")+'</h3><span class="tag'+(pct===100?" ok":"")+'">'+pct+'%</span></div><div class="bar"><i style="width:'+pct+'%"></i></div><p class="small">'+L("{d} of {n} steps done",{d:done,n:part.length})+'</p>'+(cn?'<p class="note"><span class="eyebrow">'+L("Current step")+'</span><br><b>'+esc(nodeTitle(cn)[0])+'</b> · '+LV[cn.lv].cefr+' '+LV[cn.lv].name+'</p>':"")+'</section>';
   h+='<p class="note small">'+L("Time in the app is measured automatically. Video time is what he entered himself.")+'</p>';
@@ -1150,9 +1174,9 @@ function vParent(){
   {const rows=[];ORDER.forEach(l=>SETS[l].forEach(st=>{const b=S.best["set-"+st.id];if(b==null&&l!==klv)return;
     rows.push('<tr><td>'+LV[l].cefr+'</td><td>'+esc(L(st.t))+'</td><td class="num">'+(st.kind==="write"?(b?'<span class="tag ok">✓ '+L("Done")+'</span>':"—"):(b==null?"—":'<b>'+b+' / '+Math.min(10,st.items.length)+'</b>'))+'</td></tr>')}));
    h+='<section class="card stack"><h3>'+L("Exam practice")+'</h3><div class="tbl-wrap"><table><thead><tr><th>'+L("Level")+'</th><th>'+L("Task")+'</th><th>'+L("Best")+'</th></tr></thead><tbody>'+rows.join("")+'</tbody></table></div></section>';}
+  h+='</div></details>';
   h+='<section class="card stack"><h3>'+L("Settings for your child")+'</h3><p class="small"><b>'+L("Daily goal")+'</b></p><div class="goalpick">'+[10,15,20,30,45,60].map(g=>'<button data-a="goal" data-v="'+g+'" aria-pressed="'+(S.goal===g)+'">'+fmt(g*60)+'</button>').join("")+'</div>'+goalCustom()+'<p class="small muted">'+L("The goal is set for your child's phone too.")+'</p>'+
-   '<p class="small" style="margin-top:8px"><b>'+L("Parent PIN")+'</b></p><p class="small muted">'+L("Set a 4-digit PIN so only you can open this page.")+'</p><form class="pin" id="setpin"><input id="newpin" type="password" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="PIN"><button class="btn primary" type="submit">'+L("Save PIN")+'</button>'+""+'</form>'+
-   '<p class="small muted">'+L("Direct link to this page: add #parent to the end of the site link.")+'</p></section>';
+   '<p class="small" style="margin-top:8px"><b>'+L("Parent PIN")+'</b></p><p class="small muted">'+L("Set a 4-digit PIN so only you can open this page.")+'</p><form class="pin" id="setpin"><input id="newpin" type="password" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="PIN"><button class="btn primary" type="submit">'+L("Save PIN")+'</button>'+""+'</form>'+'</section>';
   return h;
 }
 
@@ -1770,6 +1794,44 @@ function verbVideos(items){
 }
 const VV_REG=[["LkyCYeDdvgI","Woodward English",18,0,"Lesson in English"],["9TPe_x80Pgs","Woodward English",9,0,"How to say -ed"],["TCQssnI3H0M","INGLIZ TILI DUNYOSI",2,1,"Explained in Uzbek"]];
 const VV_IRR=[["wmkfguEKuqM","Woodward English",18,0,"Lesson in English"],["TCQssnI3H0M","INGLIZ TILI DUNYOSI",2,1,"Explained in Uzbek"]];
+/* ---------------- parent view: simple daily control + encouragement ---------------- */
+Object.assign(UI,{
+"Goal done today!":["Bugungi maqsad bajarildi!","Цель на сегодня выполнена!"],"Started today":["Bugun boshladi","Сегодня начал"],"Not studied yet today":["Bugun hali o'qimadi","Сегодня ещё не занимался"],
+"What did he do today?":["Bugun nima qildi?","Что он сделал сегодня?"],"{n} lessons":["{n} ta dars","уроков: {n}"],"{n} tests":["{n} ta test","тестов: {n}"],"{n} new words":["{n} ta yangi so'z","новых слов: {n}"],
+"Nothing yet today.":["Bugun hali hech narsa qilmadi.","Сегодня пока ничего."],"This week":["Bu hafta","Эта неделя"],"Goal met on {k} of {n} days":["{n} kundan {k} kunida maqsad bajarildi","Цель выполнена {k} из {n} дней"],
+"days in a row":["kun ketma-ket","дней подряд"],"words learned":["so'z yodlandi","слов выучено"],"level progress":["daraja bo'yicha","прогресс уровня"],
+"Encourage him":["Rag'batlantiring","Подбодрите его"],"One tap sends a message to his app.":["Bir bosishda uning ilovasiga xabar boradi.","Одно нажатие — и сообщение появится в его приложении."],
+"Well done!":["Barakalla!","Молодец!"],"Super!":["Zo'r!","Супер!"],"I'm proud of you!":["Faxrlanaman!","Горжусь тобой!"],"Keep going!":["Davom et!","Так держать!"],"Time to study!":["O'qish vaqti!","Пора заниматься!"],
+"Sent: {m}":["Yuborildi: {m}","Отправлено: {m}"],"Message from Mum":["Onangdan xabar","Сообщение от мамы"],"Details":["Batafsil","Подробнее"],"Last seen: {t}":["Oxirgi marta: {t}","Последний раз: {t}"]
+});
+const PRAISE=[["👏","Well done!"],["⭐","Super!"],["❤️","I'm proud of you!"],["💪","Keep going!"],["⏰","Time to study!"]];
+function act(k){const d=dk();if(!S.act)S.act={};const o=S.act[d]||(S.act[d]={l:0,t:0,w:0});o[k]=(o[k]||0)+1;const ks=Object.keys(S.act).sort();while(ks.length>60)delete S.act[ks.shift()];saveState()}
+const OTHA={};
+function actDay(d,k){let n=((S.act||{})[d]||{})[k]||0;for(const o in OTHA)n+=((OTHA[o]||{})[d]||{})[k]||0;return n}
+function parentTop(){
+  const today=dayTotal(dk()),g=S.goal*60,p=Math.min(1,today/g),last=Math.max(S.last||0,LASTSEEN);
+  const state=today>=g?["ok","😀",L("Goal done today!")]:today>=60?["mid","🙂",L("Started today")]:["no","😴",L("Not studied yet today")];
+  let h='<section class="card phero '+state[0]+'"><div class="pface">'+state[1]+'</div><div class="stack" style="gap:6px;min-width:0;flex:1"><h2>'+state[2]+'</h2>'+
+    '<div class="row" style="align-items:baseline;gap:8px"><b class="pbig num">'+Math.floor(today/60)+'</b><span class="muted">/ '+S.goal+' '+(S.lang==="ru"?"мин":S.lang==="en"?"min":"daqiqa")+'</span></div>'+
+    '<div class="bar"><i style="width:'+(p*100)+'%"></i></div><span class="small muted">'+L("Last seen: {t}",{t:whenTxt(last)})+'</span></div></section>';
+  const d=dk(),l=actDay(d,"l"),t=actDay(d,"t"),w=actDay(d,"w");
+  h+='<section class="card stack"><h3>'+L("What did he do today?")+'</h3>'+(l||t||w?'<div class="pacts">'+(l?'<span>📘 '+L("{n} lessons",{n:l})+'</span>':"")+(t?'<span>✅ '+L("{n} tests",{n:t})+'</span>':"")+(w?'<span>🆕 '+L("{n} new words",{n:w})+'</span>':"")+'</div>':'<p class="muted">'+L("Nothing yet today.")+'</p>')+'</section>';
+  const WD=WDN[S.lang]||WDN.en,now=new Date(),wd=(now.getDay()+6)%7;let met=0,cells="";
+  for(let i=0;i<7;i++){const x=new Date(now);x.setDate(now.getDate()-wd+i);const v=dayTotal(dk(x)),fut=i>wd,ok=v>=g;if(ok)met++;
+    const cls=fut?"fut":ok?"ok":v>=60?"mid":"no";cells+='<div class="wday '+cls+(i===wd?" today":"")+'"><span class="wdot">'+(fut?"":ok?"✓":v>=60?Math.floor(v/60):"·")+'</span><small>'+WD[x.getDay()]+'</small></div>'}
+  h+='<section class="card stack"><div class="row between"><h3>'+L("This week")+'</h3><span class="small muted">'+L("Goal met on {k} of {n} days",{k:met,n:wd+1})+'</span></div><div class="wstrip">'+cells+'</div></section>';
+  const klv=(S.last||0)>=LASTSEEN?S.level:(KIDLV||S.level),part=ROUTE.slice(routeStart(klv)),pct=Math.round(part.filter(nodeDone).length/part.length*100);
+  h+='<div class="ptiles">'+[["🔥",streak(),L("days in a row")],["⏱",fmt(weekSec()),L("this week")],["🗂",(S.words||[]).length,L("words learned")],["📈",pct+"%",L("level progress")]].map(x=>'<div class="ptile"><span class="pe">'+x[0]+'</span><b class="num">'+x[1]+'</b><small>'+x[2]+'</small></div>').join("")+'</div>';
+  const m=SET.msg;
+  h+='<section class="card stack praise"><h3>'+L("Encourage him")+'</h3><p class="small muted">'+L("One tap sends a message to his app.")+'</p><div class="pbtns">'+PRAISE.map((x,i)=>'<button data-a="praise" data-v="'+i+'"><span>'+x[0]+'</span>'+esc(L(x[1]))+'</button>').join("")+'</div>'+
+    (m?'<p class="small muted">'+L("Sent: {m}",{m:m.e+" "+esc(L(m.k))})+' · '+whenTxt(m.ts)+'</p>':"")+'</section>';
+  return h;
+}
+function praiseBanner(){
+  const m=SET.msg;if(!m||PARENT)return"";const seen=LS.get("elb.msgseen",0);if(m.ts<=seen)return"";
+  return '<section class="card msgc"><span class="msge">'+m.e+'</span><div style="flex:1;min-width:0"><span class="eyebrow">💌 '+L("Message from Mum")+'</span><h2>'+esc(L(m.k))+'</h2></div><button class="x" data-a="msgok" aria-label="OK">✓</button></section>';
+}
+
 /* ---------------- render & events ---------------- */
 function render(){
   renderChrome();
@@ -1799,11 +1861,13 @@ document.addEventListener("click",e=>{
   if(a==="mcend"){MC=null;render();scrollTo(0,0);return}
   if(a==="rvwords"){S.tab="verbs";VSUB="pics";VCAT="";startVocabQuiz("pic",VOCALL.filter(w=>(SET.review||[]).includes(w.k)));render();scrollTo(0,0);return}
   if(a==="rvverbs"){const d=IRR.filter(x=>(SET.review||[]).includes("v:"+x.v1));if(!d.length)return;FC={deck:shuffle(d),i:0,flip:false,ok:0};S.tab="verbs";VSUB="fc";render();scrollTo(0,0);return}
+  if(a==="praise"){const x=PRAISE[+v];setShared({msg:{e:x[0],k:x[1],ts:Date.now()}});render();toast(L("Sent: {m}",{m:x[0]+" "+L(x[1])}));return}
+  if(a==="msgok"){LS.set("elb.msgseen",SET.msg?SET.msg.ts:Date.now());render();return}
   if(a==="mapfull"){S.mapFull=!S.mapFull;saveState();render();if(!S.mapFull){const c=$("#curnode");if(c&&c.scrollIntoView)c.scrollIntoView({block:"center"})}return}
   if(a==="vcat"){VCAT=v;VSUB="pics";if(PQ&&PQ.type==="vocab")PQ=null;S.tab="verbs";render();scrollTo(0,0);return}
   if(a==="vq"){startVocabQuiz(v);render();scrollTo(0,0);if(v==="listen")say(PQ.qs[0].w.en);return}
-  if(a==="vqa"){if(!PQ||PQ.ans!==null)return;PQ.ans=+v;const it=PQ.qs[PQ.i];if(PQ.ans===it.a){PQ.score++;dropReview(it.w.k);if(!S.words)S.words=[];if(!S.words.includes(it.w.k)){S.words.push(it.w.k);saveState()}}say(it.w.en);render();return}
-  if(a==="vqn"){PQ.i++;PQ.ans=null;render();if(PQ.mode==="listen"&&PQ.i<PQ.qs.length)say(PQ.qs[PQ.i].w.en);return}
+  if(a==="vqa"){if(!PQ||PQ.ans!==null)return;PQ.ans=+v;const it=PQ.qs[PQ.i];if(PQ.ans===it.a){PQ.score++;dropReview(it.w.k);if(!S.words)S.words=[];if(!S.words.includes(it.w.k)){S.words.push(it.w.k);act("w")}}say(it.w.en);render();return}
+  if(a==="vqn"){PQ.i++;PQ.ans=null;if(PQ.i>=PQ.qs.length)act("t");render();if(PQ.mode==="listen"&&PQ.i<PQ.qs.length)say(PQ.qs[PQ.i].w.en);return}
   if(a==="vqend"){PQ=null;render();return}
   if(a==="set"){startSet(v);S.tab="practice";render();scrollTo(0,0);return}
   if(a==="sa"){if(!PQ||PQ.ans!==null)return;PQ.ans=+v;if(PQ.ans===PQ.qs[PQ.i].a)PQ.score++;render();return}
@@ -1813,7 +1877,7 @@ document.addEventListener("click",e=>{
   if(a==="scheck"){const it=PQ.qs[PQ.i];PQ.ans=norm(PQ.pick.map(k=>it.words[k]).join(" "))===norm(it.ans);if(PQ.ans)PQ.score++;render();return}
   if(a==="wmodel"){PQ.show=!PQ.show;render();return}
   if(a==="wchk"){PQ.chk[+v]=!PQ.chk[+v];render();return}
-  if(a==="wdone"){S.best["set-"+PQ.set.id]=1;saveState();PQ=null;render();scrollTo(0,0);toast(L("Saved"));return}
+  if(a==="wdone"){S.best["set-"+PQ.set.id]=1;act("t");saveState();PQ=null;render();scrollTo(0,0);toast(L("Saved"));return}
   if(a==="bld"){const k=v.split(":");BLD[k[0]]=k[0]==="t"||k[0]==="f"?k[1]:+k[1];$("#bld").innerHTML=bldInner();return}
   if(a==="vf"){VF=v;render();return}
   if(a==="vsel"){VSEL=VSEL===v?"":v;$("#vbody").innerHTML=irrRows(levelVerbs(S.level));return}
@@ -1823,17 +1887,17 @@ document.addEventListener("click",e=>{
   if(a==="tense"){openTense(v);return}
   if(a==="close"){closeSheet();return}
   if(a==="say"){e.stopPropagation();say(v);return}
-  if(a==="learn"){const i=S.tenses.indexOf(v);if(i<0){S.tenses.push(v);toast(L("Great! {t} marked as learned",{t:T[v].n}))}else S.tenses.splice(i,1);saveState();openTense(v);render();return}
+  if(a==="learn"){const i=S.tenses.indexOf(v);if(i<0){S.tenses.push(v);act("l");toast(L("Great! {t} marked as learned",{t:T[v].n}))}else S.tenses.splice(i,1);saveState();openTense(v);render();return}
   if(a==="mq"){const p=v.split("|"),q=T[p[0]].q[+p[1]],j=+p[2];const box=b.closest(".q");box.querySelectorAll("button").forEach((x,k)=>{x.disabled=true;if(k===q[2])x.classList.add("right");else if(k===j)x.classList.add("wrong")});const fb=box.querySelector(".fb");fb.className="fb "+(j===q[2]?"ok":"no");fb.textContent=j===q[2]?L("Correct!"):L("The answer is “{x}”.",{x:q[1][q[2]]});if(j===q[2])say(q[0].replace("___",q[1][q[2]]==="—"?"":q[1][q[2]]));return}
   if(a==="vsub"){VSUB=v;render();return}
   if(a==="known"){e.stopPropagation();const i=S.verbs.indexOf(v);if(i<0)S.verbs.push(v);else S.verbs.splice(i,1);saveState();if(VSUB==="irr"&&S.tab==="verbs")render();return}
   if(a==="flip"){FC.flip=!FC.flip;if(FC.flip)say(say3(FC.deck[FC.i]));render();return}
-  if(a==="fc"){const x=FC.deck[FC.i];if(v==="1"){FC.ok++;dropReview("v:"+x.v1);if(!S.verbs.includes(x.v1)){S.verbs.push(x.v1);saveState()}}else FC.deck.push(x);FC.i++;FC.flip=false;render();return}
+  if(a==="fc"){const x=FC.deck[FC.i];if(v==="1"){FC.ok++;dropReview("v:"+x.v1);if(!S.verbs.includes(x.v1)){S.verbs.push(x.v1);act("w")}}else FC.deck.push(x);FC.i++;FC.flip=false;render();return}
   if(a==="fcnew"){newDeck();render();return}
   if(a==="pq"){startPQ(v);S.tab="practice";render();scrollTo(0,0);return}
   if(a==="pqend"){PQ=null;render();return}
   if(a==="pqa"){if(PQ.ans!==null)return;PQ.ans=+v;const q=PQ.qs[PQ.i].q;if(PQ.ans===q[2])PQ.score++;render();return}
-  if(a==="pqn"){PQ.i++;PQ.ans=null;PQ.pick=[];render();const si=$("#sin");if(si)si.focus();const inp=$("#vqin");if(inp)inp.focus();return}
+  if(a==="pqn"){PQ.i++;PQ.ans=null;PQ.pick=[];if(PQ.i>=PQ.qs.length)act("t");render();const si=$("#sin");if(si)si.focus();const inp=$("#vqin");if(inp)inp.focus();return}
   if(a==="goal"){S.goal=+v;saveState();setShared({goal:+v});render();toast(L("Saved"));return}
   if(a==="addvid"){const k=dk();VIDT[k]=(VIDT[k]||0)+(+v)*60;LS.set("elb.vid",VIDT);pushReport();closeSheet();render();toast(L("Added {n} of video time",{n:fmt(+v*60)}));return}
 });
