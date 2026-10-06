@@ -315,6 +315,13 @@ tr:last-child td{border-bottom:0}
 .vlcard{display:flex;flex-direction:column;align-items:center;gap:6px;padding:20px;border:2px solid var(--line);border-radius:20px;background:var(--surface);color:var(--ink);width:100%}
 .vlen{font-size:2.2rem;letter-spacing:-.01em}
 .vltr{font-size:1.4rem;font-weight:700;color:var(--accent)}
+.svod{gap:10px}
+.svohead{display:flex;flex-wrap:wrap;gap:6px;font-weight:700;font-size:.85rem}
+.svohead span{padding:4px 10px;border-radius:8px}
+.svorow{font-size:1.25rem;font-weight:600;line-height:1.8}
+.svorow span{border-radius:6px;padding:2px 6px}
+.bo{background:color-mix(in srgb,var(--present) 25%,transparent)}
+.bpl{background:var(--surface2);color:var(--muted)}
 .maptoggle{display:flex;justify-content:center;padding-top:8px}
 .vcats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
 .vcat{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 10px;border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink)}
@@ -410,7 +417,7 @@ textarea#aiw{width:100%;padding:12px 14px;border:1px solid var(--line);border-ra
 
 /* ---------------- content ---------------- */
 const LV={
- a1:{name:"Beginner",cefr:"A1",t:["tobe","art1","plural","pron","ps","poss","demo","pc","thereis","pplace","past","ptime","qwords","goingto"],verbs:"100",verbsNote:"50 irregular + 50 regular",words:"500–700",time:"About 2–3 months with 20 minutes a day",
+ a1:{name:"Beginner",cefr:"A1",t:["svo","tobe","art1","plural","pron","ps","poss","demo","pc","thereis","pplace","past","ptime","qwords","goingto"],verbs:"100",verbsNote:"50 irregular + 50 regular",words:"500–700",time:"About 2–3 months with 20 minutes a day",
    desc:"Start here. Learn to talk about yourself, your day and what you did last weekend.",
    also:["Numbers, colours, days and months","Family, food, school and home words","Greetings and introducing yourself"]},
  a2:{name:"Pre-Intermediate",cefr:"A2",t:["pastc","art2","compar","pp","quant","fs","pmove","adverb","modals"],review:"a1",verbs:"250",verbsNote:"100 irregular verbs",words:"1,000–1,500",time:"About 3–4 months with 20–30 minutes a day",
@@ -934,6 +941,7 @@ function openTense(id){
    (V?'<p class="eyebrow">'+L("Lesson in English")+'</p>'+vb(V[0],V[1],V[2])+(S.lang!=="en"&&V[3]?'<p class="eyebrow">'+L("Explained in Uzbek")+'</p>'+vb(V[3],V[4],V[5]):""):"")+
    '<div class="row"><a class="small" data-a="ytlink" target="_blank" rel="noopener" href="'+yt(tq+" English grammar lesson")+'">'+L("More videos on YouTube")+'</a>'+
    (S.lang==="ru"?'<a class="small" data-a="ytlink" target="_blank" rel="noopener" href="'+yt(tq+" английский язык объяснение")+'">'+L("Video explained in Russian")+'</a>':"")+'</div></section>';
+  if(id==="svo")h+=svoDiagram();
   h+='<section class="stack"><h3>'+L("When do we use it?")+'</h3><ul class="uses">'+tUses(id).map(u=>'<li>'+esc(u)+'</li>').join("")+'</ul></section>';
   h+='<section class="stack"><h3>'+L("How to make it")+'</h3><div class="form"><div><b style="color:var(--good)">+</b><span>'+esc(t.f[0])+'</span></div><div><b style="color:var(--bad)">−</b><span>'+esc(t.f[1])+'</span></div><div><b>?</b><span>'+esc(t.f[2])+'</span></div></div>'+(tip?'<p class="note">'+esc(tip)+'</p>':"")+'</section>';
   h+='<section class="stack"><h3>'+L("Examples")+'</h3><ul class="ex">'+t.ex.map(e=>'<li><span>'+hl(e)+'</span>'+sayBtn(plain(e))+'</li>').join("")+'</ul></section>';
@@ -1119,7 +1127,7 @@ Object.assign(UI,{
 });
 const ROUTE=(function(){const r=[],pk=(lv,k)=>({type:"verbs",lv:lv,k:k});
   const seq=(lv,a)=>a.forEach(x=>r.push(typeof x==="number"?pk(lv,x):x.slice(0,2)==="w:"?{type:"words",lv:lv,c:x.slice(2)}:{type:"tense",lv:lv,id:x}));
-  seq("a1",["tobe",0,"w:family","art1","plural","w:numbers","pron","ps",1,"w:food","poss","demo","w:colours","pc",2,"w:animals","w:wild","thereis","pplace","w:home","w:kitchen","w:bathroom","past",3,"w:body","ptime","w:time","qwords","w:school","w:toys","w:snacks","goingto",4]);r.push({type:"check",lv:"a1"});
+  seq("a1",["svo","tobe",0,"w:family","art1","plural","w:numbers","pron","ps",1,"w:food","poss","demo","w:colours","pc",2,"w:animals","w:wild","thereis","pplace","w:home","w:kitchen","w:bathroom","past",3,"w:body","ptime","w:time","qwords","w:school","w:toys","w:snacks","goingto",4]);r.push({type:"check",lv:"a1"});
   seq("a2",["pastc",0,"w:clothes","art2","compar","w:fruitveg","pp",1,"w:weather","w:health","quant","w:places","w:shopping","fs","pmove","w:directions",2,"w:transport","w:travel","adverb","w:jobs","modals",3,"w:actions","w:sports",4,"w:feelings","w:nature","w:tech"]);r.push({type:"check",lv:"a2"});
   seq("b1",["ppc","w:emotions2","cond12","pastp","w:work","passive","usedto","w:environment","fc","gerinf","w:science","relcl"]);r.push({type:"check",lv:"b1"});
   seq("b2",["pastpc","cond3","fp","reported","deduct","fpc","wish","phrasal"]);r.push({type:"check",lv:"b2"});
@@ -1637,6 +1645,19 @@ G("pmove",{n:"Prepositions of movement",s:"into, out of, up, down, across, throu
  ["Harakat predloglari: into, out of, up, down, across, through","in / on = qayerda turgani. into / onto = biror joyga harakat.",["into / out of: kirish yoki chiqish. She ran into the room. He got out of the car.","up / down: yuqoriga yoki pastga. We climbed up the hill. The ball rolled down the stairs.","across (kesib o'tib) / through (ichidan o'tib) / along (bo'ylab): Walk across the road. The train went through the tunnel. We walked along the river.","to / from / towards / past / around / over / under: Go past the bank. Jump over the fence."]],
  ["Предлоги движения: into, out of, up, down, across, through","in / on = где находится. into / onto = движение куда-то.",["into / out of: войти или выйти. She ran into the room. He got out of the car.","up / down: вверх или вниз. We climbed up the hill. The ball rolled down the stairs.","across (через) / through (сквозь) / along (вдоль): Walk across the road. The train went through the tunnel. We walked along the river.","to / from / towards / past / around / over / under: Go past the bank. Jump over the fence."]]);
 VID.pmove=["Rai_E2EjOBw","Oxford Online English",9,"_G4RUdiww3Q","Nuriya Akhmedovna",12];
+G("svo",{n:"Sentence structure: Subject + Verb + Object",s:"Who + does + what",
+ uses:["Subject = who or what does the action. It comes first: I, Ali, my sister, the dog.","Verb = the action or the state: play, eat, go, like, am / is / are.","Object = who or what gets the action. It comes after the verb: football, an apple, my mother.","Place and time go at the end: I play football in the park every day."],
+ f:["Subject + Verb + Object (+ place + time)","Subject + be (am / is / are) + adjective / noun / place","Never start with the verb or the object: Ali likes apples."],
+ ex:["[I] play football.","[My sister] reads books.","[Ali] likes apples.","[We] watch TV in the evening.","[She] is a teacher."],
+ sig:["Who?","What does he do?","What?"],m:["I football play.","I play football."],tip:"Uzbek: Men futbol o'ynayman (subject + object + verb). English: I play football (subject + verb + object). In English the verb comes BEFORE the object!",
+ q:[["Choose the correct sentence:",["I football play.","I play football.","Play I football."],1],["In “Ali eats an apple”, the SUBJECT is…",["Ali","eats","an apple"],0],["In “She reads a book”, the VERB is…",["She","reads","a book"],1],["In “We love our mother”, the OBJECT is…",["We","love","our mother"],2]]},
+ ["Gap tuzilishi: Kim + nima qiladi + nimani","O'zbekcha: Men futbol o'ynayman (ega + to'ldiruvchi + kesim). Inglizcha: I play football (ega + kesim + to'ldiruvchi). Inglizchada fe'l to'ldiruvchidan OLDIN keladi!",["Subject (ega) = kim yoki nima ish bajaradi. Gap boshida keladi: I, Ali, my sister, the dog.","Verb (kesim, fe'l) = ish-harakat yoki holat: play, eat, go, like, am / is / are.","Object (to'ldiruvchi) = ish kimga yoki nimaga qaratilgan. Fe'ldan keyin keladi: football, an apple, my mother.","Joy va vaqt gap oxirida keladi: I play football in the park every day."]],
+ ["Строение предложения: Кто + делает + что","В русском порядок слов свободный, а в английском строгий: I play football (подлежащее + глагол + дополнение). Глагол всегда стоит ПЕРЕД дополнением!",["Subject (подлежащее) = кто или что делает действие. Стоит в начале: I, Ali, my sister, the dog.","Verb (сказуемое, глагол) = действие или состояние: play, eat, go, like, am / is / are.","Object (дополнение) = на кого или что направлено действие. Стоит после глагола: football, an apple, my mother.","Место и время — в конце: I play football in the park every day."]]);
+VID.svo=["n6l9JFrEfF8","Mark Kulek ESL",7,"kmIxDSdZ2zE","IBRAT FARZANDLARI",10];
+function svoDiagram(){const row=x=>'<div class="svorow">'+x.map(p=>'<span class="'+p[1]+'">'+esc(p[0])+'</span>').join(" ")+'</div>';
+  return '<div class="card stack svod"><div class="svohead"><span class="bs">Subject</span><span class="bv">Verb</span><span class="bo">Object</span><span class="bpl">'+(S.lang==="ru"?"место / время":S.lang==="en"?"place / time":"joy / vaqt")+'</span></div>'+
+   row([["I","bs"],["play","bv"],["football","bo"],["in the park","bpl"]])+row([["My sister","bs"],["reads","bv"],["books","bo"],["every day","bpl"]])+row([["Ali","bs"],["likes","bv"],["apples","bo"]])+row([["She","bs"],["is","bv"],["a teacher","bo"]])+
+   '<p class="small muted">'+(S.lang==="ru"?"🇺🇿/🇷🇺 Men futbol o'ynayman → 🇬🇧 I play football":"🇺🇿 Men futbol o'ynayman → 🇬🇧 I play football")+'</p></div>'}
 Object.assign(VID,{
  plural:["L4B7XxuJO6A","Ellii (ESL Library)",4,"1zEdlLKQYUM","INGLIZ TILI DUNYOSI",2],
  pron:["aqJMbCvduhY","Ellii (ESL Library)",5,"1KqXJ3qNtpU","INGLIZ TILI DUNYOSI",3],
